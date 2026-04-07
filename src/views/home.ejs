@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moodly</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/home.css">
+  <link rel="stylesheet" href="/modal.css">
+</head>
+<body>
+  <div class="page">
+    <div class="app-container">
+      <%- include('partials/header') %>
+
+      <section class="main-card">
+        <div class="streak-badge">🔥 <%= streak %>일 연속 기록 중</div>
+        <h1>오늘의 감정을 기록해보세요</h1>
+        <div class="emotion-list">
+          <button class="emotion happy">😊</button>
+          <button class="emotion calm">😌</button>
+          <button class="emotion normal">😐</button>
+          <button class="emotion sad">😭</button>
+          <button class="emotion angry">😡</button>
+        </div>
+        <button class="write-btn">일기 작성하기</button>
+      </section>
+
+      <div class="bottom-row">
+        <div class="rec-card">
+          <h2 class="rec-card__title">오늘의 추천</h2>
+          <p class="rec-card__date"><%= date %></p>
+          <div class="rec-item">오늘의 한마디 : -</div>
+          <div class="rec-item">추천 행동 : -</div>
+          <div class="rec-item">♫ -</div>
+        </div>
+
+        <div class="stats-card">
+          <h2 class="stats-card__title">이번주 감정 통계</h2>
+          <div class="bar-chart">
+            <% 
+              // 그래프 높이 계산 (데이터 중 가장 큰 값을 기준으로 비율 설정)
+              const maxCount = Math.max(...Object.values(stats), 1); 
+              const emotionItems = [
+                { key: 'happy', emoji: '😊' },
+                { key: 'calm', emoji: '😌' },
+                { key: 'normal', emoji: '😐' },
+                { key: 'sad', emoji: '😭' },
+                { key: 'angry', emoji: '😡' }
+              ];
+            %>
+
+            <% emotionItems.forEach(item => { %>
+              <div class="bar-col">
+                <div class="bar bar--<%= item.key %>" 
+                  style="--bar-height: <%= (stats[item.key] / maxCount) * 80 + 5 %>px;">
+                </div>
+                <span class="bar-emoji"><%= item.emoji %></span>
+              </div>
+            <% }) %>
+          </div>
+          <p class="stats-caption">이번주 가장 많이 느낀 감정: <strong><%= topEmotion %></strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" style="
+    position: fixed;
+    top: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: #3a3a35;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 20px;
+    font-size: 14px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    z-index: 9999;
+  ">감정을 먼저 선택해주세요!</div>
+
+  <script>
+    // 감정별 추천 데이터
+    const recommendations = {
+      happy: [
+        { message: '오늘 하루도 빛나고 있어요!', action: '친구에게 안부 문자 보내기', music: '♫ Pharrell Williams – Happy' },
+        { message: '이 기분 오래오래 간직해요', action: '좋아하는 카페 가기', music: '♫ IU – Blueming' },
+      ],
+      calm: [
+        { message: '고요한 하루네요', action: '잠깐 산책하기', music: '♫ Norah Jones – Come Away With Me' },
+      ],
+      normal: [
+        { message: '무난한 하루네', action: '스트레칭 10분', music: '♫ Hearts2Hearts – RUDE!' },
+      ],
+      sad: [
+        { message: '괜찮아요, 오늘 하루 수고했어요', action: '따뜻한 차 한잔 마시기', music: '♫ 아이유 – 이런 엔딩' },
+      ],
+      angry: [
+        { message: '심호흡 한번 해봐요', action: '10분 걷기', music: '♫ Billie Eilish – Lovely' },
+      ],
+    };
+
+    function showToast() {
+      const toast = document.getElementById('toast');
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(-20px)';
+      }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. 감정 버튼 클릭 이벤트
+      document.querySelectorAll('.emotion').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.emotion').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+
+          const emotion = [...btn.classList].find(c => c !== 'emotion' && c !== 'selected');
+          const list = recommendations[emotion];
+          const data = list[Math.floor(Math.random() * list.length)];
+
+          const recItems = document.querySelectorAll('.rec-item');
+          recItems[0].textContent = `오늘의 한마디 : ${data.message}`;
+          recItems[1].textContent = `추천 행동 : ${data.action}`;
+          recItems[2].textContent = data.music;
+        });
+      });
+
+      // 2. 일기 작성하기 버튼 클릭 이벤트
+      const writeBtn = document.querySelector('.write-btn');
+      if (writeBtn) {
+        writeBtn.addEventListener('click', () => {
+          // 서버에서 넘겨받은 유저 정보 확인
+          const isLoggedIn = "<%= user ? 'true' : 'false' %>" === "true";
+          
+          if (!isLoggedIn) {
+            if (typeof openLogin === 'function') {
+              openLogin();
+            } else {
+              alert('로그인이 필요한 서비스입니다.');
+            }
+            return;
+          }
+
+          const selected = document.querySelector('.emotion.selected');
+          if (!selected) {
+            showToast();
+            return;
+          }
+
+          // 감정 ID 매핑 (DB 구조에 맞춰 조절)
+          const emotionMap = { happy: 1, calm: 2, normal: 3, sad: 4, angry: 5 };
+          const emotionClass = [...selected.classList].find(c => c !== 'emotion' && c !== 'selected');
+          
+          location.href = `/write?emotion=${emotionMap[emotionClass]}`;
+        });
+      }
+    });
+  </script>
+</body>
+</html>

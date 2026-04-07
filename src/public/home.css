@@ -1,0 +1,211 @@
+.main-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 2.5rem 2.5rem 2rem;
+  text-align: center;
+  position: relative;
+}
+
+.main-card h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 2rem;
+  letter-spacing: -0.01em;
+}
+
+.streak-badge {
+  position: absolute;
+  top: 1.8rem;
+  right: 2rem;
+  background: #fff8e6;
+  border: 1px solid #f5d980;
+  color: #b07800;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem;
+  border-radius: 50px;
+  white-space: nowrap;
+}
+
+.emotion-list {
+  display: flex;
+  justify-content: center;
+  gap: 1.2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.emotion {
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-emoji);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  transition: transform 0.25s var(--spring), box-shadow 0.25s ease;
+  position: relative;
+  outline: none;
+}
+
+.emotion:hover {
+  transform: translateY(-6px) scale(1.08);
+  box-shadow: var(--shadow-hover);
+}
+
+.emotion:active {
+  transform: scale(0.96);
+}
+
+.emotion.selected::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: calc(var(--radius-emoji) + 3px);
+  border: 3px solid var(--green-primary);
+}
+
+.emotion.happy  { background: var(--happy); }
+.emotion.calm   { background: var(--calm); }
+.emotion.normal { background: var(--normal); }
+.emotion.sad    { background: var(--sad); }
+.emotion.angry  { background: var(--angry); }
+
+.write-btn {
+  display: inline-block;
+  background: var(--green-primary);
+  color: #fff;
+  font-family: var(--font-kr);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.75rem 2.8rem;
+  border: none;
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  box-shadow: 0 4px 14px rgba(122, 171, 110, 0.35);
+  transition: background 0.2s, transform 0.25s var(--spring), box-shadow 0.2s;
+}
+
+.write-btn:hover {
+  background: var(--green-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(77, 122, 66, 0.35);
+}
+
+.write-btn:active {
+  transform: translateY(0);
+}
+
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.rec-card,
+.stats-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 1.8rem 2rem;
+}
+
+.rec-card__title,
+.stats-card__title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 0.4rem;
+}
+
+.rec-card__date {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--green-primary);
+  margin-bottom: 1.2rem;
+}
+
+.rec-item {
+  background: #fff;
+  border-radius: 50px;
+  padding: 0.7rem 1.3rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.65rem;
+  box-shadow: 0 1px 6px rgba(80, 110, 70, 0.07);
+  transition: box-shadow 0.2s;
+}
+
+.rec-item:last-child { margin-bottom: 0; }
+
+.rec-item:hover {
+  box-shadow: 0 3px 12px rgba(80, 110, 70, 0.14);
+}
+
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.85rem;
+  height: 130px;
+  margin: 1rem 0 0.8rem;
+}
+
+.bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.bar {
+  width: 100%;
+  max-width: 52px;
+  height: var(--bar-height, 5px);
+  border-radius: 8px 8px 0 0;
+  transition: height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bar--happy  { background: var(--happy);}
+.bar--calm   { background: var(--calm);}
+.bar--normal { background: var(--normal);}
+.bar--sad    { background: var(--sad);}
+.bar--angry  { background: var(--angry);}
+
+.bar-emoji {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.stats-caption {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 720px) {
+  .bottom-row {
+    grid-template-columns: 1fr;
+  }
+
+  .emotion {
+    width: 72px;
+    height: 72px;
+  }
+
+  .main-card h1 {
+    font-size: 1.2rem;
+  }
+
+  .streak-badge {
+    position: static;
+    display: inline-block;
+    margin-bottom: 1rem;
+  }
+}

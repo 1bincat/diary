@@ -1,0 +1,56 @@
+<header class="header">
+  <div class="logo">Moodly</div>
+
+  <nav class="nav">
+    <a href="/" class="<%= path === '/' ? 'active' : '' %>">홈</a>
+    <a href="/calendar" class="<%= path === '/calendar' ? 'active' : '' %>">캘린더</a>
+    <a href="/statistics" class="<%= path === '/statistics' ? 'active' : '' %>">통계</a>
+    <a href="/community" class="<%= path === '/community' ? 'active' : '' %>">커뮤니티</a>
+  </nav>
+
+  <div class="login-area">
+  <% if (user) { %>
+    <span class="user-nickname"><%= user.nickname %>님</span>
+    <div class="profile-dropdown">
+      <span class="user-icon" id="profileBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M6 20v-1a6 6 0 0 1 12 0v1"/>
+        </svg>
+      </span>
+      <div class="dropdown-menu" id="dropdownMenu">
+        <a href="/settings">설정</a>
+        <a href="/logout">로그아웃</a>
+      </div>
+    </div>
+  <% } else { %>
+    <a href="#" class="login-text" id="loginBtn">로그인</a>
+    <span class="user-icon" id="loginIconBtn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M6 20v-1a6 6 0 0 1 12 0v1"/>
+      </svg>
+    </span>
+  <% } %>
+</div>
+</header>
+
+<script>
+  const profileBtn = document.getElementById('profileBtn');
+  const dropdownMenu = document.getElementById('dropdownMenu');
+
+  profileBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdownMenu.classList.toggle('show');
+  });
+
+  document.addEventListener('click', () => {
+    dropdownMenu.classList.remove('show');
+  });
+</script>
+
+<%- include('./modal') %>

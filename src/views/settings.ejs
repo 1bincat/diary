@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moodly - 설정</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/modal.css">
+</head>
+<body>
+  <div class="page">
+    <div class="app-container">
+      <%- include('./partials/header', { user, path: '/settings' }) %>
+
+      <main class="settings-container">
+        <h2 class="settings-title">설정</h2>
+
+        <% if (typeof message !== 'undefined' && message) { %>
+          <div class="settings-message <%= messageType %>"><%= message %></div>
+        <% } %>
+
+        <section class="settings-card">
+          <h3>닉네임 변경</h3>
+          <form action="/settings/nickname" method="POST">
+            <input type="text" name="nickname" placeholder="새 닉네임" value="<%= user.nickname %>" required />
+            <button type="submit">변경</button>
+          </form>
+        </section>
+
+        <section class="settings-card">
+          <h3>이메일 변경</h3>
+          <form action="/settings/email" method="POST">
+            <input type="email" name="email" placeholder="새 이메일" required />
+            <button type="submit">변경</button>
+          </form>
+        </section>
+
+        <section class="settings-card">
+          <h3>비밀번호 변경</h3>
+          <form action="/settings/password" method="POST">
+            <input type="password" name="currentPassword" placeholder="현재 비밀번호" required />
+            <input type="password" name="newPassword" placeholder="새 비밀번호" required />
+            <input type="password" name="newPasswordConfirm" placeholder="새 비밀번호 확인" required />
+            <button type="submit">변경</button>
+          </form>
+        </section>
+
+        <section class="settings-card danger">
+            <h3>회원탈퇴</h3>
+            <p>탈퇴 시 모든 데이터가 삭제됩니다.</p>
+            <form action="/settings/delete" method="POST" id="deleteForm">
+                <input type="password" name="password" placeholder="비밀번호 확인" required />
+                <button type="button" class="btn-danger" id="deleteBtn">탈퇴하기</button>
+            </form>
+            </section>
+
+            <!-- 탈퇴 확인 모달 -->
+            <div class="confirm-overlay" id="confirmOverlay">
+                <div class="confirm-modal">
+                    <p class="confirm-icon">😢</p>
+                    <h3>정말 탈퇴하시겠어요?</h3>
+                    <p>탈퇴 시 모든 데이터가 <strong>영구 삭제</strong>됩니다.</p>
+                    <div class="confirm-btns">
+                        <button class="confirm-cancel" id="confirmCancel">취소</button>
+                        <button class="confirm-ok btn-danger" id="confirmOk">탈퇴하기</button>
+                    </div>
+                </div>
+            </div>
+      </main>
+
+    </div>
+  </div>
+  <script>
+    const deleteBtn = document.getElementById('deleteBtn');
+    const confirmOverlay = document.getElementById('confirmOverlay');
+    const confirmCancel = document.getElementById('confirmCancel');
+    const confirmOk = document.getElementById('confirmOk');
+
+    deleteBtn.addEventListener('click', () => {
+        confirmOverlay.classList.add('show');
+    });
+
+    confirmCancel.addEventListener('click', () => {
+        confirmOverlay.classList.remove('show');
+    });
+
+    confirmOk.addEventListener('click', () => {
+        document.getElementById('deleteForm').submit();
+    });
+
+    confirmOverlay.addEventListener('click', (e) => {
+        if (e.target === confirmOverlay) confirmOverlay.classList.remove('show');
+    });
+</script>
+</body>
+</html>

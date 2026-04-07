@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MOODLY - 회원가입</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/modal.css">
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+
+      <h1 class="auth-logo">MOODLY</h1>
+      <p class="auth-title">회원가입</p>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <p class="auth-error"><%= error %></p>
+      <% } %>
+
+      <form action="/signup" method="POST" class="auth-form">
+        <div class="field-group">
+          <label class="field-label" for="nickname">닉네임</label>
+          <input class="field-input" type="text" id="nickname" name="nickname" autocomplete="nickname" />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="userId">아이디</label>
+          <input class="field-input" type="text" id="userId" name="username" autocomplete="username" />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="password">비밀번호</label>
+          <input class="field-input" type="password" id="password" name="password" autocomplete="new-password" />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="passwordConfirm">비밀번호 확인</label>
+          <input class="field-input" type="password" id="passwordConfirm" name="passwordConfirm" autocomplete="new-password" />
+        </div>
+
+        <button class="auth-btn" type="submit">회원가입</button>
+      </form>
+
+      <p class="auth-footer">
+        이미 계정이 있으신가요?&nbsp;<a href="/login">로그인</a>
+      </p>
+
+    </div>
+  </div>
+</body>
+</html>

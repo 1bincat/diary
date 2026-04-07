@@ -1,0 +1,320 @@
+<% if (!user) { %>
+
+<!-- ───── 로그인 모달 ───── -->
+<div class="modal-backdrop" id="loginModal">
+  <div class="modal-card">
+    <button class="modal-close" id="loginModalClose">✕</button>
+    <h1 class="auth-logo">MOODLY</h1>
+    <p class="auth-title">로그인</p>
+    <p class="auth-error" id="loginError" style="display:none;"></p>
+    <form class="auth-form" id="loginForm">
+      <div class="field-group">
+        <label class="field-label" for="modalUserId">아이디</label>
+        <input class="field-input" type="text" id="modalUserId" name="userId" autocomplete="username" />
+      </div>
+      <div class="field-group">
+        <div class="field-label-row">
+          <label class="field-label" for="modalPassword">비밀번호</label>
+          <a class="forgot-link" href="#" id="goFindPw">비밀번호 찾기</a>
+        </div>
+        <input class="field-input" type="password" id="modalPassword" name="password" autocomplete="current-password" />
+      </div>
+      <button class="auth-btn" type="submit">로그인</button>
+    </form>
+    <p class="auth-footer">
+      아직 계정이 없으신가요?&nbsp;<a href="#" id="goSignup">회원가입하기</a>
+    </p>
+  </div>
+</div>
+
+<!-- ───── 비밀번호 찾기 모달 ───── -->
+<div class="modal-backdrop" id="findPwModal">
+  <div class="modal-card">
+    <button class="modal-close" id="findPwModalClose">✕</button>
+    <h1 class="auth-logo">MOODLY</h1>
+    <p class="auth-title">비밀번호 찾기</p>
+    <p class="auth-error" id="findPwError" style="display:none;"></p>
+
+    <!-- 입력 폼 -->
+    <div id="findPwForm">
+      <div class="field-group">
+        <label class="field-label" for="findUserId">아이디</label>
+        <input class="field-input" type="text" id="findUserId" placeholder="가입한 아이디 입력" />
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="findEmail">이메일</label>
+        <input class="field-input" type="email" id="findEmail" placeholder="임시 비밀번호를 받을 이메일 입력" />
+      </div>
+      <button class="auth-btn" type="button" id="findPwBtn">확인</button>
+    </div>
+
+    <!-- 결과 표시 -->
+    <div id="findPwResult" style="display:none;">
+      <p style="font-size:0.9rem; color:var(--text-secondary); text-align:center; margin-bottom:1rem;">
+        임시 비밀번호를 이메일로 발송했습니다.<br/>메일함을 확인해 주세요 📬
+      </p>
+      <button class="auth-btn" type="button" id="goLoginFromFind" style="margin-top:1rem;">
+        로그인하러 가기
+      </button>
+    </div>
+
+    <p class="auth-footer">
+      <a href="#" id="backToLogin">← 로그인으로 돌아가기</a>
+    </p>
+  </div>
+</div>
+
+<!-- ───── 회원가입 모달 ───── -->
+<div class="modal-backdrop" id="signupModal">
+  <div class="modal-card">
+    <button class="modal-close" id="signupModalClose">✕</button>
+    <h1 class="auth-logo">MOODLY</h1>
+    <p class="auth-title">회원가입</p>
+    <p class="auth-error" id="signupError" style="display:none;"></p>
+    <form class="auth-form" id="signupForm">
+      <div class="field-group">
+        <label class="field-label" for="modalNickname">닉네임</label>
+        <input class="field-input" type="text" id="modalNickname" name="nickname" autocomplete="nickname" />
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="modalSignupId">아이디</label>
+        <div class="input-with-btn">
+          <input class="field-input" type="text" id="modalSignupId" name="userId" autocomplete="username" />
+          <button type="button" class="check-btn" id="checkIdBtn">중복확인</button>
+        </div>
+        <p class="check-result" id="checkResult"></p>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="modalSignupEmail">이메일</label>
+        <input class="field-input" type="email" id="modalSignupEmail" name="email" placeholder="example@moodly.com" required />
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="modalSignupPw">비밀번호</label>
+        <input class="field-input" type="password" id="modalSignupPw" name="password" autocomplete="new-password" />
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="modalSignupPwConfirm">비밀번호 확인</label>
+        <input class="field-input" type="password" id="modalSignupPwConfirm" name="passwordConfirm" autocomplete="new-password" />
+      </div>
+      <button class="auth-btn" type="submit" id="signupSubmitBtn" disabled>회원가입</button>
+    </form>
+    <p class="auth-footer">
+      이미 계정이 있으신가요?&nbsp;<a href="#" id="goLogin">로그인</a>
+    </p>
+  </div>
+</div>
+
+<!-- ───── 스크립트 ───── -->
+<script>
+  const loginModal  = document.getElementById('loginModal');
+  const signupModal = document.getElementById('signupModal');
+  const findPwModal = document.getElementById('findPwModal');
+  let idChecked = false;
+
+  // ── 모달 열기 / 닫기 ──
+  function openLogin() {
+    signupModal.classList.remove('active');
+    findPwModal.classList.remove('active');
+    loginModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('loginError').style.display = 'none';
+  }
+
+  function openSignup() {
+    loginModal.classList.remove('active');
+    findPwModal.classList.remove('active');
+    signupModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('signupError').style.display = 'none';
+  }
+
+  function openFindPw() {
+    loginModal.classList.remove('active');
+    signupModal.classList.remove('active');
+    findPwModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('findUserId').value = '';
+    document.getElementById('findEmail').value = '';
+    document.getElementById('findPwError').style.display = 'none';
+    document.getElementById('findPwForm').style.display = 'block';
+    document.getElementById('findPwResult').style.display = 'none';
+  }
+
+  function closeAll() {
+    loginModal.classList.remove('active');
+    signupModal.classList.remove('active');
+    findPwModal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('loginBtn').addEventListener('click',        (e) => { e.preventDefault(); openLogin(); });
+  document.getElementById('loginIconBtn').addEventListener('click',    (e) => { e.preventDefault(); openLogin(); });
+  document.getElementById('goSignup').addEventListener('click',        (e) => { e.preventDefault(); openSignup(); });
+  document.getElementById('goLogin').addEventListener('click',         (e) => { e.preventDefault(); openLogin(); });
+  document.getElementById('goFindPw').addEventListener('click',        (e) => { e.preventDefault(); openFindPw(); });
+  document.getElementById('backToLogin').addEventListener('click',     (e) => { e.preventDefault(); openLogin(); });
+  document.getElementById('goLoginFromFind').addEventListener('click', () => openLogin());
+
+  document.getElementById('loginModalClose').addEventListener('click',  closeAll);
+  document.getElementById('signupModalClose').addEventListener('click', closeAll);
+  document.getElementById('findPwModalClose').addEventListener('click', closeAll);
+
+  loginModal.addEventListener('click',  (e) => { if (e.target === loginModal)  closeAll(); });
+  signupModal.addEventListener('click', (e) => { if (e.target === signupModal) closeAll(); });
+  findPwModal.addEventListener('click', (e) => { if (e.target === findPwModal) closeAll(); });
+  document.addEventListener('keydown',  (e) => { if (e.key === 'Escape') closeAll(); });
+
+  // ── 비밀번호 찾기 (아이디 + 이메일 직접 입력) ──
+  document.getElementById('findPwBtn').addEventListener('click', async () => {
+    const userId   = document.getElementById('findUserId').value.trim();
+    const email    = document.getElementById('findEmail').value.trim();
+    const errorBox = document.getElementById('findPwError');
+
+    if (!userId || !email) {
+      errorBox.textContent = '아이디와 이메일을 모두 입력해주세요.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    const res  = await fetch('/login/find-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `userId=${encodeURIComponent(userId)}&email=${encodeURIComponent(email)}`
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      errorBox.style.display = 'none';
+      document.getElementById('findPwForm').style.display = 'none';
+      document.getElementById('findPwResult').style.display = 'block';
+    } else {
+      errorBox.textContent = data.message;
+      errorBox.style.display = 'block';
+    }
+  });
+
+  // ── 중복확인 ──
+  document.getElementById('modalSignupId').addEventListener('input', () => {
+    idChecked = false;
+    document.getElementById('signupSubmitBtn').disabled = true;
+    const result = document.getElementById('checkResult');
+    result.style.display = 'none';
+    result.textContent = '';
+  });
+
+  document.getElementById('checkIdBtn').addEventListener('click', async () => {
+    const userId    = document.getElementById('modalSignupId').value.trim();
+    const result    = document.getElementById('checkResult');
+    const submitBtn = document.getElementById('signupSubmitBtn');
+
+    if (!userId) {
+      result.textContent = '아이디를 먼저 입력해주세요.';
+      result.className = 'check-result err';
+      result.style.display = 'block';
+      return;
+    }
+
+    const res  = await fetch(`/signup/check-id?userId=${encodeURIComponent(userId)}`);
+    const data = await res.json();
+    result.textContent = data.message;
+    result.style.display = 'block';
+
+    if (data.available) {
+      result.className = 'check-result ok';
+      idChecked = true;
+      submitBtn.disabled = false;
+    } else {
+      result.className = 'check-result err';
+      idChecked = false;
+      submitBtn.disabled = true;
+    }
+  });
+
+  // ── 로그인 폼 제출 ──
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const userId   = document.getElementById('modalUserId').value.trim();
+    const password = document.getElementById('modalPassword').value;
+    const errorBox = document.getElementById('loginError');
+
+    if (!userId || !password) {
+      errorBox.style.background = '#fdecea';
+      errorBox.style.color = '#c0392b';
+      errorBox.textContent = '아이디와 비밀번호를 입력해주세요.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    const res  = await fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `userId=${encodeURIComponent(userId)}&password=${encodeURIComponent(password)}`
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      window.location.href = data.redirect;
+    } else {
+      errorBox.style.background = '#fdecea';
+      errorBox.style.color = '#c0392b';
+      errorBox.textContent = data.message;
+      errorBox.style.display = 'block';
+    }
+  });
+
+  // ── 회원가입 폼 제출 ──
+  document.getElementById('signupForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nickname        = document.getElementById('modalNickname').value.trim();
+    const userId          = document.getElementById('modalSignupId').value.trim();
+    const email           = document.getElementById('modalSignupEmail').value.trim();
+    const password        = document.getElementById('modalSignupPw').value;
+    const passwordConfirm = document.getElementById('modalSignupPwConfirm').value;
+    const errorBox        = document.getElementById('signupError');
+
+    if (!nickname || !userId || !email || !password || !passwordConfirm) {
+      errorBox.textContent = '모든 항목을 입력해주세요.';
+      errorBox.style.display = 'block';
+      return;
+    }
+    if (!idChecked) {
+      errorBox.textContent = '아이디 중복확인을 해주세요.';
+      errorBox.style.display = 'block';
+      return;
+    }
+    if (password !== passwordConfirm) {
+      errorBox.textContent = '비밀번호가 일치하지 않습니다.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    const res  = await fetch('/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `nickname=${encodeURIComponent(nickname)}&userId=${encodeURIComponent(userId)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&passwordConfirm=${encodeURIComponent(passwordConfirm)}`
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById('modalNickname').value = '';
+      document.getElementById('modalSignupId').value = '';
+      document.getElementById('modalSignupEmail').value = '';
+      document.getElementById('modalSignupPw').value = '';
+      document.getElementById('modalSignupPwConfirm').value = '';
+      document.getElementById('checkResult').style.display = 'none';
+      document.getElementById('signupSubmitBtn').disabled = true;
+      idChecked = false;
+      openLogin();
+      const loginError = document.getElementById('loginError');
+      loginError.style.background = '#eaf5e8';
+      loginError.style.color = '#3a7a36';
+      loginError.textContent = '회원가입 완료! 로그인해주세요';
+      loginError.style.display = 'block';
+    } else {
+      errorBox.textContent = data.message;
+      errorBox.style.display = 'block';
+    }
+  });
+</script>
+
+<% } %>

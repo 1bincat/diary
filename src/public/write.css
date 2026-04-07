@@ -1,0 +1,263 @@
+/* ─── 일기 작성 레이아웃 ─── */
+.write-layout {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  margin-top: 1.5rem;
+}
+
+.write-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.write-side {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+/* ─── 제목 ─── */
+.write-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+/* ─── 일기 카드 ─── */
+.write-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.write-textarea {
+  width: 100%;
+  min-height: 200px;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--font-kr);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  background: transparent;
+  line-height: 1.8;
+}
+
+.write-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.write-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.voice-btn {
+  background: none;
+  border: 1px solid var(--text-muted);
+  border-radius: 50px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.voice-btn:hover {
+  background: var(--bg-nav);
+}
+
+.char-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ─── 저장/취소 버튼 ─── */
+.write-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.cancel-btn {
+  background: none;
+  border: 1px solid var(--text-muted);
+  border-radius: var(--radius-btn);
+  padding: 0.5rem 1.4rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cancel-btn:hover {
+  background: var(--bg-nav);
+}
+
+.save-btn {
+  background: var(--green-primary);
+  border: none;
+  border-radius: var(--radius-btn);
+  padding: 0.5rem 1.6rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.save-btn:hover {
+  background: var(--green-dark);
+}
+
+/* ─── 감정 이모지 선택 ─── */
+.emotion-row {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: flex-start;
+}
+
+.emotion-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  opacity: 0.6;
+}
+
+.emotion-btn.happy  { background: var(--happy); }
+.emotion-btn.calm   { background: var(--calm); }
+.emotion-btn.normal { background: var(--normal); }
+.emotion-btn.sad    { background: var(--sad); }
+.emotion-btn.angry  { background: var(--angry); }
+
+.emotion-btn.selected,
+.emotion-btn:hover {
+  opacity: 1;
+  transform: scale(1.12);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+/* ─── 사이드 카드 공통 ─── */
+.side-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 1.2rem 1.4rem;
+}
+
+.side-card__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 0.8rem;
+}
+
+/* ─── streak 카드 ─── */
+.streak-card {
+  background: #eaf5e4;
+}
+
+.streak-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.streak-num {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--green-dark);
+  line-height: 1;
+}
+
+.streak-main {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.streak-sub {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 0.2rem;
+}
+
+/* ─── 오늘의 한마디 ─── */
+.quote-text {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  line-height: 1.7;
+}
+
+/* ─── 추천 음악 ─── */
+.music-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.music-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--normal);
+  flex-shrink: 0;
+}
+
+.music-info {
+  flex: 1;
+}
+
+.music-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.music-artist {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+.music-play {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--green-primary);
+  border: none;
+  color: #fff;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.music-play:hover {
+  background: var(--green-dark);
+}
+
+/* ─── 반응형 ─── */
+@media (max-width: 768px) {
+  .write-layout {
+    flex-direction: column;
+  }
+  .write-side {
+    width: 100%;
+  }
+}
