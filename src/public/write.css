@@ -1,263 +1,132 @@
-/* ─── 일기 작성 레이아웃 ─── */
+/* write.css */
+
+/* ─── 전체 레이아웃 (그림처럼 왼쪽/오른쪽 2분할) ─── */
 .write-layout {
   display: flex;
-  gap: 1.5rem;
+  gap: 2rem;
   align-items: flex-start;
   margin-top: 1.5rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 20px;
 }
 
+/* ─── 왼쪽 영역 (감정 + 일기 + 그래프) ─── */
 .write-main {
+  flex: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ─── 오른쪽 영역 (연속 기록 + 타임라인) ─── */
+.write-side {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
+  position: sticky; /* 스크롤 시 따라오게 설정 */
+  top: 20px;
 }
 
-.write-side {
-  width: 280px;
+/* ─── [그림 위치 1] 감정 이모지 선택 ─── */
+.emotion-row {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  flex-shrink: 0;
+  gap: 0.8rem; /* 버튼 사이 간격 */
+  justify-content: flex-start;
+  margin: 0;
 }
 
-/* ─── 제목 ─── */
-.write-title {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--text-primary);
+.emotion-btn {
+  width: 55px;
+  height: 55px;
+  border-radius: 16px;
+  border: 2px solid transparent; /* 기본 테두리 투명 */
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease; /* 부드러운 전환 효과 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 기본 배경색을 투명하게 하거나 아주 연한 회색으로 설정 */
+  background-color: #f8f9fa;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* 은은한 그림자 */
 }
 
-/* ─── 일기 카드 ─── */
+.emotion-btn.happy { background-color: #f5e490; }  /* 노랑 (기쁨) */
+.emotion-btn.calm { background-color: #c8e6c0; }   /* 민트 (평온) */
+.emotion-btn.normal { background-color: #d0d0d0; } /* 연회색 (보통) */
+.emotion-btn.sad { background-color: #b8d4f0; }    /* 연파랑 (슬픔) */
+.emotion-btn.angry { background-color: #e8a0a0; }  /* 연빨강 (화남) */
+
+/* ─── [신규 추가] 호버 효과 (마우스 올렸을 때 살짝 진하게) ─── */
+.emotion-btn:hover {
+  transform: translateY(-3px); /* 살짝 위로 이동 */
+  box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+}
+
+/* ─── [신규 추가] 선택된 상태 스타일 (강조) ─── */
+.emotion-btn.selected {
+  transform: scale(1.05); /* 크기 살짝 키움 */
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.emotion-btn.happy.selected { border-color: #fab005; background-color: #f5e490; }
+.emotion-btn.calm.selected { border-color: #20c997; background-color: #c8e6c0; }
+.emotion-btn.normal.selected { border-color: #868e96; background-color: #d0d0d0; }
+.emotion-btn.sad.selected { border-color: #228be6; background-color: #b8d4f0; }
+.emotion-btn.angry.selected { border-color: #fa5252; background-color: #e8a0a0; }
+
+/* ─── [그림 위치 2] 일기 카드 ─── */
 .write-card {
   background: var(--bg-card);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
   padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
 }
 
 .write-textarea {
   width: 100%;
-  min-height: 200px;
+  min-height: 250px;
   border: none;
   outline: none;
   resize: none;
   font-family: var(--font-kr);
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--text-primary);
   background: transparent;
   line-height: 1.8;
 }
 
-.write-textarea::placeholder {
-  color: var(--text-muted);
+/* ─── [그림 위치 3] 그래프 카드 ─── */
+.emotion-chart-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 1.5rem;
 }
 
-.write-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.voice-btn {
-  background: none;
-  border: 1px solid var(--text-muted);
-  border-radius: 50px;
-  padding: 0.3rem 0.9rem;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.voice-btn:hover {
-  background: var(--bg-nav);
-}
-
-.char-count {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-/* ─── 저장/취소 버튼 ─── */
-.write-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-}
-
-.cancel-btn {
-  background: none;
-  border: 1px solid var(--text-muted);
-  border-radius: var(--radius-btn);
-  padding: 0.5rem 1.4rem;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.cancel-btn:hover {
-  background: var(--bg-nav);
-}
-
-.save-btn {
-  background: var(--green-primary);
-  border: none;
-  border-radius: var(--radius-btn);
-  padding: 0.5rem 1.6rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.save-btn:hover {
-  background: var(--green-dark);
-}
-
-/* ─── 감정 이모지 선택 ─── */
-.emotion-row {
-  display: flex;
-  gap: 0.8rem;
-  justify-content: flex-start;
-}
-
-.emotion-btn {
-  width: 64px;
-  height: 64px;
-  border-radius: 16px;
-  border: none;
-  font-size: 2rem;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  opacity: 0.6;
-}
-
-.emotion-btn.happy  { background: var(--happy); }
-.emotion-btn.calm   { background: var(--calm); }
-.emotion-btn.normal { background: var(--normal); }
-.emotion-btn.sad    { background: var(--sad); }
-.emotion-btn.angry  { background: var(--angry); }
-
-.emotion-btn.selected,
-.emotion-btn:hover {
-  opacity: 1;
-  transform: scale(1.12);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-}
-/* ─── 사이드 카드 공통 ─── */
+/* ─── [그림 위치 4 & 5] 사이드 카드 ─── */
 .side-card {
   background: var(--bg-card);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
-  padding: 1.2rem 1.4rem;
+  padding: 1.5rem;
 }
 
-.side-card__label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  margin-bottom: 0.8rem;
-}
-
-/* ─── streak 카드 ─── */
 .streak-card {
   background: #eaf5e4;
-}
-
-.streak-box {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.streak-num {
-  font-size: 2.8rem;
-  font-weight: 800;
-  color: var(--green-dark);
-  line-height: 1;
-}
-
-.streak-main {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.streak-sub {
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-  margin-top: 0.2rem;
-}
-
-/* ─── 오늘의 한마디 ─── */
-.quote-text {
-  font-size: 0.88rem;
-  color: var(--text-primary);
-  line-height: 1.7;
-}
-
-/* ─── 추천 음악 ─── */
-.music-item {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-}
-
-.music-thumb {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: var(--normal);
-  flex-shrink: 0;
-}
-
-.music-info {
-  flex: 1;
-}
-
-.music-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.music-artist {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: 0.1rem;
-}
-
-.music-play {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--green-primary);
   border: none;
-  color: #fff;
-  font-size: 0.75rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
 }
 
-.music-play:hover {
-  background: var(--green-dark);
+.timeline-item p {
+  word-break: break-all; /* 가로 스크롤 방지 */
+  margin: 5px 0;
 }
 
-/* ─── 반응형 ─── */
-@media (max-width: 768px) {
-  .write-layout {
-    flex-direction: column;
-  }
-  .write-side {
-    width: 100%;
-  }
+/* 반응형 */
+@media (max-width: 900px) {
+  .write-layout { flex-direction: column; }
+  .write-side { position: static; width: 100%; }
 }

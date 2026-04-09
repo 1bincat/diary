@@ -25,26 +25,51 @@ const musicList = [
 
 // routes/write.js
 
+// routes/write.js
+
+// routes/write.js
+
 router.get('/', requireLogin, async (req, res) => {
   const userId = req.session.user.userId;
+  
+  // 1. 변수를 미리 선언해둡니다 (초기값 0)
+  let userStreak = 0; 
+
   try {
     const today = new Date().toISOString().slice(0, 10);
+    
+    // 유저 고유 ID 가져오기
     const [userRows] = await db.query('SELECT id FROM users WHERE username = ?', [userId]);
     const dbUserId = userRows[0].id;
 
-    // 수정: 오늘 작성한 모든 일기 목록을 가져옴 (시간순)
+    // 2. streak_logs 테이블에서 최신 streak_count 조회
+    const [streakRows] = await db.query(
+      'SELECT streak_count FROM streak_logs WHERE user_id = ? ORDER BY streak_date DESC LIMIT 1',
+      [dbUserId]
+    );
+    
+    // 데이터가 있다면 변수에 할당
+    if (streakRows.length > 0) {
+      userStreak = streakRows[0].streak_count;
+    }
+
+    // 오늘 작성한 일기 목록 가져오기
     const [diaries] = await db.query(
       'SELECT *, DATE_FORMAT(created_at, "%H:%i") as time FROM diaries WHERE user_id = ? AND diary_date = ? ORDER BY created_at ASC',
       [dbUserId, today]
     );
 
+    // 3. 페이지 렌더링 (userStreak가 위에서 정의되었으므로 에러가 나지 않습니다)
     res.render('write', { 
       path: '/write',
-      diaries: diaries, // 전체 목록 전달
+      diaries: diaries,
+      streak: userStreak, 
       selectedEmotion: 0
     });
+
   } catch (err) {
-    console.error(err);
+    console.error('작성 페이지 로드 오류:', err);
+    // 에러 발생 시에도 streak 변수를 포함하여 렌더링하거나 리다이렉트
     res.redirect('/');
   }
 });

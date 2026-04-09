@@ -1,163 +1,226 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Moodly - 일기 작성 및 감정 추적</title>
+  <title>Moodly - 기록하기</title>
   <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/modal.css">
   <link rel="stylesheet" href="/write.css">
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&family=Noto+Sans+KR:wght@700;900&display=swap"
+    rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    .toggle-btn { border: none; background: none; color: #4CAF50; cursor: pointer; font-size: 0.8rem; padding: 0; font-weight: bold; margin-left: 5px; }
-    .toggle-btn:hover { text-decoration: underline; }
-    .timeline-container::-webkit-scrollbar { width: 6px; }
-    .timeline-container::-webkit-scrollbar-thumb { background: #eee; border-radius: 10px; }
-    .content-full { display: none; }
-    /* 선택된 감정 버튼 강조 */
-    .emotion-btn.selected { background-color: #e8f5e9; border: 2px solid #4CAF50; transform: scale(1.1); }
+    /* 가로 스크롤 방지 및 줄바꿈 설정 */
+    .timeline-item p {
+      word-break: break-all;
+      margin: 5px 0;
+    }
+
+    .toggle-btn {
+      border: none;
+      background: none;
+      color: #4CAF50;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
   </style>
 </head>
+
 <body>
   <div class="page">
     <div class="app-container">
       <%- include('partials/header') %>
 
-      <div class="write-layout">
-        <div class="write-main">
-          <h2 class="write-title">지금 이 순간, 어떤 기분인가요?</h2>
-          <div class="write-card">
-            <textarea class="write-textarea" id="diaryContent" placeholder="지금의 감정을 짧게라도 기록해보세요..." maxlength="500"></textarea>
-            <div class="write-footer">
-              <button class="voice-btn" type="button">🎙 음성으로 입력</button>
-              <span class="char-count"><span id="charCount">0</span> / 500자</span>
-            </div>
-          </div>
-          <div class="write-actions">
-            <button class="cancel-btn" onclick="history.back()">취소</button>
-            <button class="save-btn" id="saveBtn">기록하기</button>
-          </div>
-          <div class="emotion-row">
-            <button class="emotion-btn happy" data-id="1">😊</button>
-            <button class="emotion-btn calm" data-id="2">😌</button>
-            <button class="emotion-btn normal" data-id="3">😐</button>
-            <button class="emotion-btn sad" data-id="4">😢</button>
-            <button class="emotion-btn angry" data-id="5">😠</button>
-          </div>
-        </div>
+        <div class="write-layout">
+          <div class="write-main">
 
-        <div class="write-side">
-          <div class="side-card">
-            <p class="side-card__label">📈 오늘의 감정 변화</p>
-            <div style="height: 180px; position: relative;">
-              <canvas id="emotionChart" data-diaries='<%- JSON.stringify(diaries || []) %>'></canvas>
+            <div class="emotion-header" style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1rem;">
+              <h2 class="write-greeting"
+                style="font-family: 'Noto Sans KR', sans-serif; font-weight: 900; font-size: 1.4rem; margin: 0; white-space: nowrap;">
+                오늘 하루는 어땠나요?</h2>
+
+              <div class="emotion-row" style="display: flex; gap: 0.8rem;">
+                <button class="emotion-btn happy" data-id="1">😊</button>
+                <button class="emotion-btn calm" data-id="2">😌</button>
+                <button class="emotion-btn normal" data-id="3">😐</button>
+                <button class="emotion-btn sad" data-id="4">😢</button>
+                <button class="emotion-btn angry" data-id="5">😠</button>
+              </div>
+            </div>
+
+            <div class="write-card">
+              <textarea class="write-textarea" id="diaryContent" placeholder="지금의 기분을 기록해보세요..."
+                maxlength="500"></textarea>
+              <div class="write-footer"
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                <button class="voice-btn" type="button"
+                  style="background: none; border: 1px solid #ddd; border-radius: 20px; padding: 5px 15px; cursor: pointer;">🎙
+                  음성 입력</button>
+                <span class="char-count"><span id="charCount">0</span> / 500자</span>
+              </div>
+            </div>
+
+            <div class="write-actions" style="display: flex; justify-content: flex-end; gap: 10px;">
+              <button class="cancel-btn" onclick="history.back()"
+                style="padding: 8px 20px; border-radius: 8px; border: 1px solid #ddd; background: none; cursor: pointer;">취소</button>
+              <button class="save-btn" id="saveBtn"
+                style="padding: 8px 25px; border-radius: 8px; border: none; background: #4CAF50; color: white; font-weight: bold; cursor: pointer;">기록하기</button>
+            </div>
+
+            <div class="emotion-chart-card">
+              <p style="font-size: 0.9rem; font-weight: bold; color: #666; margin-bottom: 1rem;">📈 오늘의 감정 변화</p>
+              <div style="height: 220px; position: relative;">
+                <canvas id="emotionChart" data-diaries='<%- JSON.stringify(diaries || []) %>'></canvas>
+              </div>
             </div>
           </div>
-          
-          <div class="side-card">
-            <p class="side-card__label">🕒 오늘의 타임라인</p>
-            <div class="timeline-container" id="timelineList" style="max-height: 380px; overflow-y: auto; padding-right: 5px;">
-              <% if (typeof diaries !== 'undefined' && diaries.length > 0) { %>
-                <% diaries.forEach((item, index) => { %>
-                  <div class="timeline-item" style="border-left: 2px solid #4CAF50; padding-left: 15px; margin-bottom: 20px; position: relative;">
-                    <div style="position: absolute; left: -6px; top: 0; width: 10px; height: 10px; border-radius: 50%; background: #4CAF50;"></div>
-                    <small style="color: #888; font-weight: bold;"><%= item.time || '방금 전' %></small>
-                    
-                    <div style="margin: 5px 0;">
-                      <% if (item.content && item.content.length > 45) { %>
-                        <p id="short-<%= index %>" style="font-size: 0.9rem; line-height: 1.5; margin: 0; color: #333;">
-                          <%= item.content.substring(0, 45) %>...
-                          <button type="button" class="toggle-btn" onclick="toggleDiary('<%= index %>', true)">더보기</button>
-                        </p>
-                        <p id="full-<%= index %>" class="content-full" style="font-size: 0.9rem; line-height: 1.5; margin: 0; color: #333;">
-                          <%= item.content %>
-                          <button type="button" class="toggle-btn" onclick="toggleDiary('<%= index %>', false)">간략히</button>
-                        </p>
-                      <% } else { %>
-                        <p style="font-size: 0.9rem; line-height: 1.5; margin: 0; color: #333;"><%= item.content %></p>
-                      <% } %>
+
+          <div class="write-side">
+
+            <div class="side-card streak-card" style="background: #eaf5e4; padding: 1.5rem; border-radius: 15px;">
+              <p style="font-size: 0.8rem; font-weight: bold; color: #555; margin-bottom: 10px;">🔥 연속 기록 중</p>
+              <div style="display: flex; align-items: center; gap: 15px;">
+                <span style="font-size: 2.8rem; font-weight: 900; color: #2d5a27;">
+                  <%= (typeof streak !=='undefined' ) ? streak : 0 %>
+                </span>
+                <div style="font-size: 0.95rem; font-weight: bold;">
+                  <p>일째 기록 중</p>
+                  <p style="font-size: 0.75rem; color: #666; font-weight: normal;">오늘도 수고했어요!</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="side-card"
+              style="background: #fff; padding: 1.5rem; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+              <p style="font-size: 0.8rem; font-weight: bold; color: #555; margin-bottom: 15px;">🕒 오늘의 타임라인</p>
+              <div class="timeline-container" style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
+                <% if (typeof diaries !=='undefined' && diaries.length> 0) { %>
+                  <% diaries.forEach((item, index)=> { %>
+                    <div class="timeline-item"
+                      style="border-left: 2px solid #4CAF50; padding-left: 15px; margin-bottom: 20px; position: relative;">
+                      <div
+                        style="position: absolute; left: -6px; top: 0; width: 10px; height: 10px; border-radius: 50%; background: #4CAF50;">
+                      </div>
+                      <small style="color: #888;">
+                        <%= item.time %>
+                      </small>
+                      <div style="margin: 5px 0;">
+                        <% if (item.content && item.content.length> 45) { %>
+                          <p id="short-<%= index %>" style="font-size: 0.9rem; color: #333; word-break: break-all;">
+                            <%= item.content.substring(0, 45) %>...<button type="button" class="toggle-btn"
+                                onclick="toggleDiary('<%= index %>', true)">더보기</button>
+                          </p>
+                          <p id="full-<%= index %>"
+                            style="display:none; font-size: 0.9rem; color: #333; word-break: break-all;">
+                            <%= item.content %><button type="button" class="toggle-btn"
+                                onclick="toggleDiary('<%= index %>', false)">&nbsp;간략히</button>
+                          </p>
+                          <% } else { %>
+                            <p style="font-size: 0.9rem; color: #333; word-break: break-all;">
+                              <%= item.content %>
+                            </p>
+                            <% } %>
+                      </div>
+                      <span style="font-size: 1.1rem;">
+                        <%= ['','😊','😌','😐','😢','😠'][item.emotion_id] %>
+                      </span>
                     </div>
-                    
-                    <span style="font-size: 1.1rem;"><%= ['','😊','😌','😐','😢','😠'][item.emotion_id] || '😶' %></span>
-                  </div>
-                <% }) %>
-              <% } else { %>
-                <p style="font-size: 0.85rem; color: #888; text-align: center; padding: 20px 0;">오늘의 첫 기분을 남겨보세요!</p>
-              <% } %>
+                    <% }) %>
+                      <% } else { %>
+                        <p style="text-align: center; color: #aaa; font-size: 0.85rem; padding: 20px 0;">첫 기록을 남겨보세요!
+                        </p>
+                        <% } %>
+              </div>
             </div>
           </div>
         </div>
-      </div>
     </div>
   </div>
 
   <script>
-    // 1. 토글 함수 (전역)
+    // 일기 내용 더보기/간략히 기능
     function toggleDiary(index, show) {
-      const shortElem = document.getElementById('short-' + index);
-      const fullElem = document.getElementById('full-' + index);
-      if (shortElem && fullElem) {
-        shortElem.style.display = show ? 'none' : 'block';
-        fullElem.style.display = show ? 'block' : 'none';
-      }
+      document.getElementById('short-' + index).style.display = show ? 'none' : 'block';
+      document.getElementById('full-' + index).style.display = show ? 'block' : 'none';
     }
 
     let selectedEmotionId = 0;
 
     document.addEventListener('DOMContentLoaded', () => {
-    // 1. URL에서 ?emotion=번호 부분을 읽어옵니다. 
-    const params = new URLSearchParams(window.location.search);
-    const emotionParam = params.get('emotion');
-
-    // 2. 만약 전달된 감정 번호가 있다면 
-    if (emotionParam) {
-        const targetBtn = document.querySelector(`.emotion-btn[data-id="${emotionParam}"]`);
-        if (targetBtn) {
-            // 해당 버튼을 클릭한 효과를 줍니다 (기존 선택 해제 후 새로 선택) [cite: 3, 7]
-            document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('selected'));
-            targetBtn.classList.add('selected');
-            selectedEmotionId = parseInt(emotionParam); // 변수 업데이트 
-        }
-    }
-      const textarea = document.getElementById('diaryContent');
-      const charCount = document.getElementById('charCount');
-      const saveBtn = document.getElementById('saveBtn');
-
-      // 2. 그래프 그리기 로직 (오류 방지 강화)
-      try {
-        const canvas = document.getElementById('emotionChart');
-        const rawData = canvas.getAttribute('data-diaries');
-        const diaryData = JSON.parse(rawData);
-        
-        if (diaryData && diaryData.length > 0) {
-          const ctx = canvas.getContext('2d');
-          const emotionScores = { 1: 5, 2: 4, 3: 3, 4: 2, 5: 1 };
-          new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: diaryData.map(d => d.time || ''),
-              datasets: [{
-                data: diaryData.map(d => emotionScores[d.emotion_id] || 3),
-                borderColor: '#4CAF50',
-                backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                tension: 0.4,
-                fill: true,
-                pointRadius: 4
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                y: { min: 1, max: 5, ticks: { stepSize: 1, callback: (v) => ['', '😠', '😢', '😐', '😌', '😊'][v] } }
+      // 1. 차트 렌더링
+      const canvas = document.getElementById('emotionChart');
+      const diaryData = JSON.parse(canvas.getAttribute('data-diaries') || '[]');
+      if (diaryData.length > 0) {
+        const scores = { 1: 5, 2: 4, 3: 3, 4: 2, 5: 1 };
+        new Chart(canvas.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: diaryData.map(d => d.time),
+            datasets: [{
+              data: diaryData.map(d => scores[d.emotion_id]),
+              borderColor: '#4CAF50',        // 선 색상 (초록)
+              backgroundColor: 'rgba(76, 175, 80, 0.1)', // 선 아래 채우기 색상
+              tension: 0.4,                  // 곡선 부드러움 정도
+              fill: true,                    // 하단 채우기 활성화
+              pointRadius: 5,                // 데이터 점 크기
+              pointBackGroundColor: '#4CAF50'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                min: 1, // 최하단 (😠)
+                max: 5, // 최상단 (😊)
+                ticks: {
+                  stepSize: 1,
+                  // ★ 숫자를 이모지로 변환하는 콜백 함수 ★
+                  callback: function (value) {
+                    const emojiMap = { 5: '😊', 4: '😌', 3: '😐', 2: '😢', 1: '😠' };
+                    return emojiMap[value] || '';
+                  },
+                  font: {
+                    size: 18 // 이모지가 잘 보이도록 폰트 크기 조절
+                  },
+                  padding: 10
+                },
+                grid: {
+                  color: '#f0f0f0', // 눈금선 색상을 연하게
+                  drawBorder: false
+                }
               },
-              plugins: { legend: { display: false } }
+              x: {
+                ticks: {
+                  font: { size: 11 },
+                  color: '#888'
+                },
+                grid: {
+                  display: false // 가로축 눈금선은 숨김 (깔끔함)
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: false // 범례(dataset1 표시) 숨김
+              },
+              tooltip: {
+                callbacks: {
+                  // 툴팁에서도 숫자가 아닌 이모지로 표시되게 설정
+                  label: function (context) {
+                    const emojiMap = { 5: '기쁨 😊', 4: '평온 😌', 3: '보통 😐', 2: '슬픔 😢', 1: '화남 😠' };
+                    return emojiMap[context.raw] || context.raw;
+                  }
+                }
+              }
             }
-          });
-        }
-      } catch (e) { console.error("Chart Rendering Error:", e); }
+          }
+        });
+      }
 
-      // 3. 감정 버튼 클릭 (클래스 토글 추가)
+      // 2. 감정 버튼 선택 로직
       document.querySelectorAll('.emotion-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('selected'));
@@ -166,36 +229,32 @@
         });
       });
 
-      // 4. 저장 버튼 이벤트
-      if (saveBtn) {
-        saveBtn.addEventListener('click', async () => {
-          const content = textarea.value.trim();
-          if (!content) return alert('일기 내용을 입력해주세요.');
-          if (selectedEmotionId === 0) return alert('기분을 선택해주세요.');
-          
-          try {
-            const res = await fetch('/write', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ content, emotionId: selectedEmotionId })
-            });
-            const data = await res.json();
-            
-            if (data.success) {
-              // 성공 시 새로고침하여 리스트 갱신
-              window.location.reload(); 
-            } else {
-              alert(data.message || '저장 실패');
-            }
-          } catch (err) {
-            console.error(err);
-            alert('서버와 통신 중 오류가 발생했습니다.');
-          }
-        });
-      }
+      // 3. 일기 저장 (POST)
+      document.getElementById('saveBtn').addEventListener('click', async () => {
+        const content = document.getElementById('diaryContent').value.trim();
+        if (!content || selectedEmotionId === 0) return alert('기분과 내용을 모두 입력해주세요.');
 
-      textarea?.addEventListener('input', () => charCount.textContent = textarea.value.length);
+        try {
+          const res = await fetch('/write', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content, emotionId: selectedEmotionId })
+          });
+          const data = await res.json();
+          if (data.success) window.location.reload();
+          else alert(data.message || '저장 실패');
+        } catch (err) {
+          console.error(err);
+          alert('서버와 통신 중 오류가 발생했습니다.');
+        }
+      });
+
+      // 4. 글자수 카운트
+      document.getElementById('diaryContent').addEventListener('input', (e) => {
+        document.getElementById('charCount').textContent = e.target.value.length;
+      });
     });
   </script>
 </body>
+
 </html>
