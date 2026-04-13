@@ -1,0 +1,239 @@
+.cal-container {
+  display: flex;
+  gap: 32px;
+  padding: 48px 0;          /* 좌우 패딩 제거 */
+  max-width: 1100px;        /* app-container랑 맞춤 */
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 2rem;       /* style.css app-container랑 동일 */
+  padding-right: 2rem;
+}
+
+.calendar-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 36px 40px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  flex: 1;
+  min-width: 0;
+}
+
+.cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.cal-header h2 { font-size: 18px; font-weight: 700; color: #3a3a3a; }
+
+.cal-nav-btn {
+  background: none; border: none; cursor: pointer;
+  color: #aaa; font-size: 20px; padding: 4px 10px;
+  border-radius: 6px; transition: background .15s;
+}
+.cal-nav-btn:hover { background: #f0ede6; color: #555; }
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.day-header {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 0 12px;
+  color: #999;
+}
+.day-header.sun { color: #e07070; }
+.day-header.sat { color: #7090d0; }
+
+.day-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background .15s;
+  min-height: 66px;
+  gap: 4px;
+}
+.day-cell:hover { background: #f5f2ea; }
+.day-cell.other-month { cursor: default; pointer-events: none; }
+.day-cell.selected { background: #e8f0e4; outline: 2px solid #6b8f5e; }
+.day-cell.today .day-num {
+  background: #6b8f5e;
+  color: #fff !important;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.day-num {
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+  line-height: 26px;
+  min-width: 26px;
+  text-align: center;
+}
+.day-cell.sun .day-num { color: #e07070; }
+.day-cell.sat .day-num { color: #7090d0; }
+.day-cell.other-month .day-num { color: #ccc; }
+
+.emoji-icon { font-size: 22px; line-height: 1; }
+
+/* ── 상세 패널 ── */
+.detail-panel {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-empty {
+  background: #fff;
+  border-radius: 20px;
+  padding: 48px 24px;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  color: #bbb;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.emotion-card {
+  border-radius: 16px;
+  padding: 28px 24px;
+  text-align: center;
+  display: none;
+}
+.emotion-card.visible { display: block; }
+.emotion-card .big-emoji { font-size: 56px; }
+.emotion-card .emotion-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #3a3a3a;
+  margin-top: 12px;
+}
+.emotion-card .diary-date {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.diary-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 22px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  display: none;
+}
+.diary-card.visible { display: block; }
+.diary-card h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #555;
+  margin-bottom: 12px;
+}
+.diary-card p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.8;
+}
+
+.diary-edit-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 22px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  display: none;
+}
+.diary-edit-card.visible { display: block; }
+.diary-edit-card h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #555;
+  margin-bottom: 12px;
+}
+.diary-edit-card textarea {
+  width: 100%;
+  height: 140px;
+  border: 1.5px solid #e0ddd6;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #444;
+  resize: none;
+  outline: none;
+  transition: border .15s;
+}
+.diary-edit-card textarea:focus { border-color: #6b8f5e; }
+
+.detail-actions { display: none; gap: 10px; }
+.detail-actions.visible { display: flex; }
+
+.btn-delete {
+  flex: 1;
+  padding: 12px;
+  background: #f5f0ea;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #888;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s;
+}
+.btn-delete:hover { background: #ede5dc; }
+
+.btn-edit {
+  flex: 1;
+  padding: 12px;
+  background: #6b8f5e;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  transition: background .15s;
+}
+.btn-edit:hover { background: #5a7a4e; }
+
+.no-diary-msg {
+  background: #fff;
+  border-radius: 20px;
+  padding: 48px 24px;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  display: none;
+}
+.no-diary-msg.visible { display: block; }
+.no-diary-msg .date-label {
+  font-size: 13px;
+  color: #bbb;
+  margin-bottom: 14px;
+}
+.no-diary-msg .write-btn {
+  display: inline-block;
+  background: #6b8f5e;
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background .15s;
+}
+.no-diary-msg .write-btn:hover { background: #5a7a4e; }

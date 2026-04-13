@@ -139,6 +139,43 @@ async function updateStreak(userId, today) {
   }
 }
 
+// 수정
+router.post('/edit/:id', requireLogin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content } = req.body;
+    const userId = req.session.user.id;
+
+    await db.query(
+      'UPDATE diaries SET content = ? WHERE id = ? AND user_id = ?',
+      [content, id, userId]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false });
+  }
+});
+
+// 삭제
+router.post('/delete/:id', requireLogin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.session.user.id;
+
+    await db.query(
+      'DELETE FROM diaries WHERE id = ? AND user_id = ?',
+      [id, userId]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false });
+  }
+});
+
 module.exports = router;
 
 // [routes/write.js 에 추가해야 할 함수]
