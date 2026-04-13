@@ -118,3 +118,108 @@ router.post('/', requireLogin, async (req, res) => {
 });
 
 module.exports = router;
+// streak 계산 함수
+async function updateStreak(userId, today) {
+  try {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+    const [yesterdayDiary] = await db.query(
+      'SELECT id FROM diaries WHERE user_id = ? AND diary_date = ?',
+      [userId, yesterdayStr]
+    );
+
+    const [lastStreak] = await db.query(
+      'SELECT streak_count FROM streak_logs WHERE user_id = ? AND streak_date = ?',
+      [userId, yesterdayStr]
+    );
+
+    const newStreak = yesterdayDiary.length > 0 && lastStreak.length > 0
+      ? lastStreak[0].streak_count + 1
+      : 1;
+
+    await db.query(
+      'INSERT INTO streak_logs (user_id, streak_date, streak_count) VALUES (?, ?, ?)',
+      [userId, today, newStreak]
+    );
+
+  } catch (err) {
+    console.error('streak 업데이트 오류:', err);
+  }
+}
+
+// 수정
+router.post('/edit/:id', requireLogin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content } = req.body;
+    const userId = req.session.user.id;
+
+    await db.query(
+      'UPDATE diaries SET content = ? WHERE id = ? AND user_id = ?',
+      [content, id, userId]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false });
+  }
+});
+
+// 삭제
+router.post('/delete/:id', requireLogin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.session.user.id;
+
+    await db.query(
+      'DELETE FROM diaries WHERE id = ? AND user_id = ?',
+      [id, userId]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false });
+  }
+});
+
+module.exports = router;
+
+// [routes/write.js 에 추가해야 할 함수]
+
+async function updateStreak(userId, today) {
+  try {
+    // 유저의 연속 기록(streak) 정보를 가져옵니다.
+    const [rows] = await db.query('SELECT last_diary_date, streak FROM users WHERE id = ?', [userId]);
+    let { last_diary_date, streak } = rows[0];
+
+    if (!last_diary_date) {
+      // 처음 쓰는 경우
+      streak = 1;
+    } else {
+      const lastDate = new Date(last_diary_date).toISOString().slice(0, 10);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+      if (lastDate === today) {
+        // 오늘 이미 썼다면 점수 유지 (여러 번 기록 시 중복 방지)
+        return;
+      } else if (lastDate === yesterdayStr) {
+        // 어제 썼다면 +1
+        streak += 1;
+      } else {
+        // 어제 안 썼다면 다시 1부터 시작
+        streak = 1;
+      }
+    }
+
+    // DB 업데이트
+    await db.query('UPDATE users SET last_diary_date = ?, streak = ? WHERE id = ?', [today, streak, userId]);
+  } catch (err) {
+    console.error('Streak 업데이트 오류:', err);
+  }
+}
