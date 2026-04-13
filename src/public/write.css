@@ -1,39 +1,38 @@
 /* write.css */
 
-/* ─── 전체 레이아웃 (그림처럼 왼쪽/오른쪽 2분할) ─── */
+/* ─── 전체 레이아웃 ─── */
 .write-layout {
   display: flex;
-  gap: 2rem;
+  gap: 2.5rem;
   align-items: flex-start;
   margin-top: 1.5rem;
-  max-width: 1200px;
+  max-width: 1600px;
   margin-left: auto;
   margin-right: auto;
-  padding: 0 20px;
+  padding: 0 40px;
 }
 
-/* ─── 왼쪽 영역 (감정 + 일기 + 그래프) ─── */
 .write-main {
-  flex: 1.6;
+  flex: 1.8;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-/* ─── 오른쪽 영역 (연속 기록 + 타임라인) ─── */
 .write-side {
   flex: 1;
+  min-width: 400px;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  position: sticky; /* 스크롤 시 따라오게 설정 */
+  position: sticky;
   top: 20px;
 }
 
-/* ─── [그림 위치 1] 감정 이모지 선택 ─── */
+/* ─── 감정 이모지 선택 ─── */
 .emotion-row {
   display: flex;
-  gap: 0.8rem; /* 버튼 사이 간격 */
+  gap: 0.8rem;
   justify-content: flex-start;
   margin: 0;
 }
@@ -42,48 +41,46 @@
   width: 55px;
   height: 55px;
   border-radius: 16px;
-  border: 2px solid transparent; /* 기본 테두리 투명 */
+  border: 2px solid transparent;
   font-size: 1.8rem;
   cursor: pointer;
-  transition: all 0.2s ease; /* 부드러운 전환 효과 */
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* 기본 배경색을 투명하게 하거나 아주 연한 회색으로 설정 */
   background-color: #f8f9fa;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* 은은한 그림자 */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
-.emotion-btn.happy { background-color: #f5e490; }  /* 노랑 (기쁨) */
-.emotion-btn.calm { background-color: #c8e6c0; }   /* 민트 (평온) */
-.emotion-btn.normal { background-color: #d0d0d0; } /* 연회색 (보통) */
-.emotion-btn.sad { background-color: #b8d4f0; }    /* 연파랑 (슬픔) */
-.emotion-btn.angry { background-color: #e8a0a0; }  /* 연빨강 (화남) */
-
-/* ─── [신규 추가] 호버 효과 (마우스 올렸을 때 살짝 진하게) ─── */
 .emotion-btn:hover {
-  transform: translateY(-3px); /* 살짝 위로 이동 */
+  transform: translateY(-3px);
   box-shadow: 0 5px 10px rgba(0,0,0,0.1);
 }
 
-/* ─── [신규 추가] 선택된 상태 스타일 (강조) ─── */
 .emotion-btn.selected {
-  transform: scale(1.05); /* 크기 살짝 키움 */
+  transform: scale(1.05);
   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
-.emotion-btn.happy.selected { border-color: #fab005; background-color: #f5e490; }
-.emotion-btn.calm.selected { border-color: #20c997; background-color: #c8e6c0; }
-.emotion-btn.normal.selected { border-color: #868e96; background-color: #d0d0d0; }
-.emotion-btn.sad.selected { border-color: #228be6; background-color: #b8d4f0; }
-.emotion-btn.angry.selected { border-color: #fa5252; background-color: #e8a0a0; }
+.emotion-btn.happy { background-color: #f5e490; }
+.emotion-btn.calm { background-color: #c8e6c0; }
+.emotion-btn.normal { background-color: #d0d0d0; }
+.emotion-btn.sad { background-color: #b8d4f0; }
+.emotion-btn.angry { background-color: #e8a0a0; }
 
-/* ─── [그림 위치 2] 일기 카드 ─── */
+.emotion-btn.happy.selected { border-color: #fab005; }
+.emotion-btn.calm.selected { border-color: #20c997; }
+.emotion-btn.normal.selected { border-color: #868e96; }
+.emotion-btn.sad.selected { border-color: #228be6; }
+.emotion-btn.angry.selected { border-color: #fa5252; }
+
+/* ─── 일기 카드 (버튼을 내부에 배치하기 위한 설정) ─── */
 .write-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
+  background: var(--bg-card, #ffffff);
+  border-radius: var(--radius-card, 20px);
+  box-shadow: var(--shadow-card, 0 4px 12px rgba(0,0,0,0.05));
   padding: 1.5rem;
+  position: relative; /* 버튼 하단 고정을 위한 기준 */
 }
 
 .write-textarea {
@@ -92,38 +89,157 @@
   border: none;
   outline: none;
   resize: none;
-  font-family: var(--font-kr);
-  font-size: 1rem;
-  color: var(--text-primary);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 400 !important;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-shadow: none !important;
+
+  font-size: 1.05rem;
+  color: var(--text-primary, #333);
   background: transparent;
   line-height: 1.8;
+  padding-bottom: 60px; /* 버튼과 겹치지 않게 하단 여백 확보 */
 }
 
-/* ─── [그림 위치 3] 그래프 카드 ─── */
+/* ─── 신규: 일기 카드 하단 버튼 영역 ─── */
+.write-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: absolute;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  right: 1.5rem;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-right {
+  display: flex;
+  gap: 8px;
+}
+
+/* ─── 버튼 공통 디자인 (둥근 네모 + 폰트) ─── */
+.voice-btn, .cancel-btn, .save-btn {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 700; /* 굵은 폰트 */
+  border-radius: 12px; /* 둥근 네모 형태 */
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 음성 입력 버튼 */
+.voice-btn {
+  background-color: #f8f9fa;
+  color: #495057;
+  border: 1px solid #dee2e6;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+}
+
+.voice-btn:hover { background-color: #e9ecef; }
+
+/* 취소 버튼 */
+.cancel-btn {
+  background-color: #f1f3f5;
+  color: #495057;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+}
+
+.cancel-btn:hover { background-color: #e9ecef; }
+
+/* 기록하기 버튼 */
+.save-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 24px;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.2);
+}
+
+.save-btn:hover {
+  background-color: #45a049;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.char-count {
+  font-size: 0.85rem;
+  color: #adb5bd;
+}
+
+/* ─── 그래프 카드 ─── */
 .emotion-chart-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
+  background: var(--bg-card, #ffffff);
+  border-radius: var(--radius-card, 20px);
+  box-shadow: var(--shadow-card, 0 4px 12px rgba(0,0,0,0.05));
   padding: 1.5rem;
 }
 
-/* ─── [그림 위치 4 & 5] 사이드 카드 ─── */
+/* ─── 사이드 카드 ─── */
 .side-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
-  padding: 1.5rem;
+  background: var(--bg-card, #ffffff);
+  border-radius: var(--radius-card, 20px);
+  box-shadow: var(--shadow-card, 0 4px 12px rgba(0,0,0,0.05));
+  padding: 1.2rem;
+}
+
+/* 기본 스트릭 숫자 스타일 */
+.streak-num {
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #2d5a27;
+}
+
+/* 연속 기록 중인 텍스트 */
+.streak-text {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 400;
+  line-height: 1.4;
+  color: #444;
+}
+
+/* ★ 연속 기록이 깨졌을 때의 카드 스타일 */
+.streak-card.streak-broken {
+  background-color: #f1f3f5; /* 회색 배경 */
+  border: 1px solid #dee2e6;
+}
+
+/* ★ 불 꺼진 아이콘 스타일 (흑백 처리) */
+.streak-off {
+  font-size: 2.8rem;
+  filter: grayscale(100%); /* 아이콘을 흑백으로 */
+  opacity: 0.5;
+}
+
+/* ★ 깨졌을 때 나오는 아쉬운 멘트 스타일 */
+.broken-msg {
+  color: #868e96;
+  font-size: 0.95rem;
 }
 
 .streak-card {
   background: #eaf5e4;
-  border: none;
+  transition: all 0.3s ease;
 }
 
 .timeline-item p {
-  word-break: break-all; /* 가로 스크롤 방지 */
+  word-break: break-all;
   margin: 5px 0;
+  font-family: 'Noto Sans KR', sans-serif;
 }
+
 
 /* 반응형 */
 @media (max-width: 900px) {

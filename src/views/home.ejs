@@ -14,14 +14,14 @@
       <%- include('partials/header') %>
 
       <section class="main-card">
-        <div class="streak-badge">🔥 <%= streak %>일 연속 기록 중</div>
+        <div class="streak-badge">🔥 <%= (typeof streak !== 'undefined') ? streak : 0 %>일 연속 기록 중</div>
         <h1>오늘의 감정을 기록해보세요</h1>
         <div class="emotion-list">
-          <button class="emotion happy">😊</button>
-          <button class="emotion calm">😌</button>
-          <button class="emotion normal">😐</button>
-          <button class="emotion sad">😭</button>
-          <button class="emotion angry">😡</button>
+          <button class="emotion happy" data-id="1">😊</button>
+          <button class="emotion calm" data-id="2">😌</button>
+          <button class="emotion normal" data-id="3">😐</button>
+          <button class="emotion sad" data-id="4">😭</button>
+          <button class="emotion angry" data-id="5">😡</button>
         </div>
         <button class="write-btn">일기 작성하기</button>
       </section>
@@ -29,18 +29,19 @@
       <div class="bottom-row">
         <div class="rec-card">
           <h2 class="rec-card__title">오늘의 추천</h2>
-          <p class="rec-card__date"><%= date %></p>
-          <div class="rec-item">오늘의 한마디 : -</div>
-          <div class="rec-item">추천 행동 : -</div>
-          <div class="rec-item">♫ -</div>
+          <p class="rec-card__date"><%= (typeof date !== 'undefined') ? date : '' %></p>
+          <div id="rec-message" class="rec-item">오늘의 한마디 : 감정을 먼저 선택해주세요</div>
+          <div id="rec-action" class="rec-item">추천 행동 : -</div>
+          <div id="rec-music" class="rec-item">♫ -</div>
         </div>
 
         <div class="stats-card">
           <h2 class="stats-card__title">이번주 감정 통계</h2>
           <div class="bar-chart">
             <% 
-              // 그래프 높이 계산 (데이터 중 가장 큰 값을 기준으로 비율 설정)
-              const maxCount = Math.max(...Object.values(stats), 1); 
+              // stats 데이터가 없을 경우를 대비한 방어 코드
+              const safeStats = (typeof stats !== 'undefined') ? stats : { happy: 0, calm: 0, normal: 0, sad: 0, angry: 0 };
+              const maxCount = Math.max(...Object.values(safeStats), 1); 
               const emotionItems = [
                 { key: 'happy', emoji: '😊' },
                 { key: 'calm', emoji: '😌' },
@@ -53,33 +54,19 @@
             <% emotionItems.forEach(item => { %>
               <div class="bar-col">
                 <div class="bar bar--<%= item.key %>" 
-                  style="--bar-height: <%= (stats[item.key] / maxCount) * 80 + 5 %>px;">
+                  style="--bar-height: <%= (safeStats[item.key] / maxCount) * 80 + 5 %>px;">
                 </div>
                 <span class="bar-emoji"><%= item.emoji %></span>
               </div>
             <% }) %>
           </div>
-          <p class="stats-caption">이번주 가장 많이 느낀 감정: <strong><%= topEmotion %></strong></p>
+          <p class="stats-caption">이번주 가장 많이 느낀 감정: <strong><%= (typeof topEmotion !== 'undefined') ? topEmotion : '데이터 없음' %></strong></p>
         </div>
       </div>
     </div>
   </div>
 
-  <div id="toast" style="
-    position: fixed;
-    top: 2rem;
-    left: 50%;
-    transform: translateX(-50%) translateY(-20px);
-    background: #3a3a35;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 20px;
-    font-size: 14px;
-    opacity: 0;
-    transition: all 0.3s ease;
-    pointer-events: none;
-    z-index: 9999;
-  ">감정을 먼저 선택해주세요!</div>
+  <div id="toast" style="position: fixed; top: 2rem; left: 50%; transform: translateX(-50%) translateY(-20px); background: #3a3a35; color: white; padding: 12px 24px; border-radius: 20px; font-size: 14px; opacity: 0; transition: all 0.3s ease; pointer-events: none; z-index: 9999;">감정을 먼저 선택해주세요!</div>
 
   <script>
     // 감정별 추천 데이터
@@ -113,36 +100,33 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // 1. 감정 버튼 클릭 이벤트
+      // 1. 감정 버튼 클릭 이벤트 (추천 데이터 업데이트)
       document.querySelectorAll('.emotion').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.emotion').forEach(b => b.classList.remove('selected'));
           btn.classList.add('selected');
 
-          const emotion = [...btn.classList].find(c => c !== 'emotion' && c !== 'selected');
-          const list = recommendations[emotion];
-          const data = list[Math.floor(Math.random() * list.length)];
-
-          const recItems = document.querySelectorAll('.rec-item');
-          recItems[0].textContent = `오늘의 한마디 : ${data.message}`;
-          recItems[1].textContent = `추천 행동 : ${data.action}`;
-          recItems[2].textContent = data.music;
+          // 클래스명에서 감정 키 추출
+          const emotionKey = [...btn.classList].find(c => recommendations[c]);
+          const list = recommendations[emotionKey];
+          
+          if (list) {
+            const data = list[Math.floor(Math.random() * list.length)];
+            document.getElementById('rec-message').textContent = `오늘의 한마디 : ${data.message}`;
+            document.getElementById('rec-action').textContent = `추천 행동 : ${data.action}`;
+            document.getElementById('rec-music').textContent = data.music;
+          }
         });
       });
 
-      // 2. 일기 작성하기 버튼 클릭 이벤트
+      // 2. 작성하기 버튼 클릭 (데이터 전달)
       const writeBtn = document.querySelector('.write-btn');
       if (writeBtn) {
         writeBtn.addEventListener('click', () => {
-          // 서버에서 넘겨받은 유저 정보 확인
           const isLoggedIn = "<%= user ? 'true' : 'false' %>" === "true";
-          
           if (!isLoggedIn) {
-            if (typeof openLogin === 'function') {
-              openLogin();
-            } else {
-              alert('로그인이 필요한 서비스입니다.');
-            }
+            if (typeof openLogin === 'function') openLogin();
+            else alert('로그인이 필요한 서비스입니다.');
             return;
           }
 
@@ -152,10 +136,8 @@
             return;
           }
 
-          // 감정 ID 매핑 (DB 구조에 맞춰 조절)
           const emotionMap = { happy: 1, calm: 2, normal: 3, sad: 4, angry: 5 };
-          const emotionClass = [...selected.classList].find(c => c !== 'emotion' && c !== 'selected');
-          
+          const emotionClass = [...selected.classList].find(c => emotionMap[c]);
           location.href = `/write?emotion=${emotionMap[emotionClass]}`;
         });
       }
