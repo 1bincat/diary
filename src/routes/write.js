@@ -124,4 +124,49 @@ router.post('/', requireLogin, async (req, res) => {
   }
 });
 
+// [PUT] 일기 수정
+router.put('/:id', requireLogin, async (req, res) => {
+  const { id } = req.params;
+  const { content } = req.body;
+  const user = req.session.user;
+
+  try {
+    const [userRows] = await db.query('SELECT id FROM users WHERE username = ?', [user.userId]);
+    const dbUserId = userRows[0].id;
+
+    const [result] = await db.query(
+      'UPDATE diaries SET content = ? WHERE id = ? AND user_id = ?',
+      [content, id, dbUserId]
+    );
+
+    if (result.affectedRows === 0) return res.status(404).json({ success: false, message: '일기 없음' });
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// [DELETE] 일기 삭제
+router.delete('/:id', requireLogin, async (req, res) => {
+  const { id } = req.params;
+  const user = req.session.user;
+
+  try {
+    const [userRows] = await db.query('SELECT id FROM users WHERE username = ?', [user.userId]);
+    const dbUserId = userRows[0].id;
+
+    const [result] = await db.query(
+      'DELETE FROM diaries WHERE id = ? AND user_id = ?',
+      [id, dbUserId]
+    );
+
+    if (result.affectedRows === 0) return res.status(404).json({ success: false, message: '일기 없음' });
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

@@ -13,7 +13,7 @@
 }
 
 .write-main {
-  flex: 1.8;
+  flex: 2.5;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -21,7 +21,7 @@
 
 .write-side {
   flex: 1;
-  min-width: 400px;
+  min-width: 320px;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;

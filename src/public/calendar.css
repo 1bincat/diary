@@ -237,3 +237,41 @@
   transition: background .15s;
 }
 .no-diary-msg .write-btn:hover { background: #5a7a4e; }
+/* ── 일기 목록 항목 ── */
+.diary-entry {
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .15s;
+  border: 2px solid transparent;
+}
+.diary-entry:hover { background: #f5f2ea; }
+.diary-entry.selected {
+  border-color: #6b8f5e;
+  background: #f0f5ee;
+}
+
+.entry-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 6px;
+}
+
+.entry-content {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.entry-divider {
+  border: none;
+  border-top: 1px solid #f0ede6;
+  margin: 6px 0;
+}
+#diaryContent {
+  max-height: 300px;
+  overflow-y: auto;
+}
