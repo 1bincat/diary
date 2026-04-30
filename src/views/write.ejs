@@ -164,6 +164,73 @@
         });
       }
 
+      // --- 음성 인식 토글 기능 (텍스트 입력 보완) ---
+      const voiceBtn = document.querySelector('.voice-btn');
+      let isRecognizing = false;
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'ko-KR';
+        recognition.interimResults = false;
+
+        voiceBtn.addEventListener('click', (e) => {
+          e.preventDefault(); // 페이지 새로고침 방지
+          if (isRecognizing) {
+            recognition.stop();
+          } else {
+            try {
+              recognition.start();
+            } catch (err) {
+              console.error("인식 시작 에러:", err);
+            }
+          }
+        });
+
+        recognition.onstart = () => {
+          isRecognizing = true;
+          voiceBtn.style.backgroundColor = '#666'; 
+          voiceBtn.style.color = '#fff';
+          voiceBtn.textContent = '⏹ 중단하기';
+        };
+
+        // ★ 텍스트가 안 써지는 문제를 해결하는 핵심 구간
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          // ID로 직접 찾아서 즉시 반영
+          const diaryArea = document.getElementById('diaryContent'); 
+          
+          if (diaryArea) {
+            // 기존 텍스트가 있으면 한 칸 띄우고 추가
+            const currentText = diaryArea.value;
+            diaryArea.value = currentText + (currentText ? " " : "") + transcript;
+            
+            // 글자수 카운트 업데이트[cite: 2]
+            const charCount = document.getElementById('charCount');
+            if (charCount) charCount.textContent = diaryArea.value.length;
+            
+            // 브라우저가 값이 변한 것을 인식하도록 강제 알림
+            diaryArea.dispatchEvent(new Event('input'));
+          }
+        };
+
+        recognition.onend = () => {
+          isRecognizing = false;
+          voiceBtn.style.backgroundColor = ''; 
+          voiceBtn.style.color = '';
+          voiceBtn.textContent = '🎙 음성 입력';
+        };
+
+        recognition.onerror = (event) => {
+          console.error("음성 인식 오류:", event.error);
+          isRecognizing = false;
+        };
+      } else {
+        voiceBtn.style.display = 'none';
+      }
+      // --- 음성 인식 기능 끝 ---
+
       // 5. 저장 로직 (날짜 전송 수정됨)
       if (saveBtn) {
         saveBtn.addEventListener('click', async () => {
