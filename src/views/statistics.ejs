@@ -2,17 +2,95 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>통계</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moodly · 감정 통계</title>
   <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/modal.css">
 </head>
 <body>
-  <div class="page">
-    <div class="app-container">
-      <%- include('partials/header') %>
+  <div class="app-container">
+    <%- include('partials/header') %>
+  </div>
 
-      <h1>통계 페이지</h1>
+  <div class="stats-page">
+    <h2 class="stats-header">감정 통계</h2>
+
+    <!-- 기간 탭 -->
+    <div class="period-tabs">
+      <a href="/statistics?period=day&offset=<%= offset %>"     class="<%= period === 'day'     ? 'active' : '' %>">일</a>
+      <a href="/statistics?period=week&offset=<%= offset %>"    class="<%= period === 'week'    ? 'active' : '' %>">주</a>
+      <a href="/statistics?period=month&offset=<%= offset %>"   class="<%= period === 'month'   ? 'active' : '' %>">월</a>
+      <a href="/statistics?period=quarter&offset=<%= offset %>" class="<%= period === 'quarter' ? 'active' : '' %>">분기</a>
+      <a href="/statistics?period=year&offset=<%= offset %>"    class="<%= period === 'year'    ? 'active' : '' %>">년</a>
     </div>
+
+    <!-- 기간 네비게이션 -->
+    <div class="period-nav">
+      <a href="/statistics?period=<%= period %>&offset=<%= offset - 1 %>">&#8592;</a>
+      <span class="period-label"><%= periodLabel %></span>
+      <% if (offset < 0) { %>
+        <a href="/statistics?period=<%= period %>&offset=<%= offset + 1 %>">&#8594;</a>
+      <% } else { %>
+        <span style="width:36px"></span>
+      <% } %>
+    </div>
+
+    <!-- 요약 카드 -->
+    <div class="summary-cards">
+      <div class="scard">
+        <div class="s-label">작성 일수</div>
+        <div class="s-value"><%= writtenDays %></div>
+        <div class="s-sub">/ <%= totalDays %>일</div>
+      </div>
+      <div class="scard">
+        <div class="s-label">총 기록</div>
+        <div class="s-value"><%= totalEntries %></div>
+        <div class="s-sub">개</div>
+      </div>
+      <div class="scard">
+        <div class="s-label">최대 연속 스트릭</div>
+        <div class="s-value"><%= currentStreak %></div>
+        <div class="s-sub">일</div>
+      </div>
+    </div>
+
+    <!-- 감정 분포 -->
+    <p class="section-title">감정 분포</p>
+    <div class="chart-card">
+      <% if (emotions && emotions.length > 0) { %>
+        <% emotions.forEach(function(e) { %>
+          <div class="emotion-row">
+            <span class="emo-icon"><%= e.icon %></span>
+            <span class="emo-label"><%= e.name %></span>
+            <div class="bar-wrap">
+              <div class="bar-fill" style="width:<%= e.percent %>%;background:<%= e.color %>"></div>
+            </div>
+            <span class="emo-count"><%= e.count %>회</span>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="no-data">
+          <div class="no-data-icon">📭</div>
+          이 기간에 기록이 없어요
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Top 감정 -->
+    <% if (topEmotion) { %>
+      <p class="section-title">가장 많이 느낀 감정</p>
+      <div class="top-card">
+        <div class="top-badge"><%= topEmotion.icon %> <%= topEmotion.name %> · <%= topEmotion.count %>번</div>
+        <span class="top-pct">전체의 <%= topEmotion.percent %>%</span>
+      </div>
+    <% } %>
+
+    <!-- 인사이트 -->
+    <% if (insight) { %>
+      <p class="section-title">인사이트</p>
+      <div class="insight-card">
+        <p class="insight-text"><%- insight %></p>
+      </div>
+    <% } %>
   </div>
 </body>
 </html>
