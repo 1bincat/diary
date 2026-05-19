@@ -8,6 +8,36 @@
   <link rel="stylesheet" href="/style.css"/>
   <link rel="stylesheet" href="/modal.css"/>
   <link rel="stylesheet" href="/calendar.css"/>
+  <style>
+    /* ================================================================ */
+    /* ✨ [수정] 버튼을 글자 뒤에 인라인으로 붙이고 초록색 감성 유지 */
+    /* ================================================================ */
+    .more-less-btn {
+      background: none;
+      border: none;
+      color: #6b8f5e; /* Moodly 시그니처 초록색 */
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0;
+      margin-left: 6px; /* 글자(...)와 버튼 사이의 간격 */
+      display: inline-block; /* 줄바꿈 없이 글자 뒤에 바로 붙도록 인라인 처리 */
+      vertical-align: baseline;
+    }
+    .more-less-btn:hover {
+      text-decoration: underline;
+      color: #5a7a4e;
+    }
+
+    /* 일기 본문 영역 가로 스크롤 완전히 없애기 */
+    .entry-content {
+      word-break: break-all;      
+      overflow-wrap: break-word;  
+      white-space: pre-wrap;      /* pre-wrap을 유지해야 접혔을 때 인라인 버튼이 한 흐름으로 묶입니다 */
+      max-width: 100%;            
+    }
+    /* ================================================================ */
+  </style>
 </head>
 <body>
 
@@ -77,15 +107,7 @@
     });
   }
 
-  const diaryMapJson = `<%- JSON.stringify(diaryMap || {}) %>`;
   let diaryMap = {};
-  try {
-    diaryMap = JSON.parse(diaryMapJson);
-  } catch (e) {
-    console.error("데이터 파싱 에러:", e);
-    diaryMap = {};
-  }
-
   let currentYear, currentMonth;
   let currentDiaryId = null;
   let isEditMode = false;
@@ -94,10 +116,21 @@
   function pad(n) { return String(n).padStart(2, '0'); }
   function toKey(y, m, d) { return `${y}-${pad(m)}-${pad(d)}`; }
 
-  function buildCalendar(year, month) {
+  async function loadAndBuildCalendar(year, month) {
     currentYear = year;
     currentMonth = month;
     document.getElementById('calTitle').textContent = `${year}년 ${month}월`;
+
+    try {
+      const response = await fetch(`/calendar?year=${year}&month=${month}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      const result = await response.json();
+      diaryMap = result.diaryMap || {};
+    } catch (e) {
+      console.error("실시간 데이터 조회 실패:", e);
+      diaryMap = {};
+    }
 
     const grid = document.getElementById('calGrid');
     while (grid.children.length > 7) grid.removeChild(grid.lastChild);
@@ -193,13 +226,56 @@
         entryEl.className = 'diary-entry';
         entryEl.dataset.id = entry.diaryId;
         entryEl.dataset.content = entry.content;
+
+        const rawContent = entry.content;
+        const isLong = rawContent.length > 50;
+        const displayContent = isLong ? rawContent.substring(0, 50) + '...' : rawContent;
+
+        // ★ [구조 변경] 더보기 버튼이 entry-content div 외부가 아니라 내부로 들어가 글자 바로 뒤에 붙도록 바꿈
         entryEl.innerHTML = `
           <div class="entry-meta">
             <span>${entry.emoji} ${entry.emotion}</span>
             <span class="entry-time">${entry.time}</span>
           </div>
-          <div class="entry-content">${entry.content}</div>
+          <div class="entry-content">${displayContent}${isLong ? `<button class="more-less-btn" type="button">더보기</button>` : ''}</div>
         `;
+
+        if (isLong) {
+          const btn = entryEl.querySelector('.more-less-btn');
+          const contentDiv = entryEl.querySelector('.entry-content');
+          let isOpen = false;
+
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!isOpen) {
+              // 전체 내용을 뿌릴 때 엔터를 <br>로 치환하고 간략히 버튼을 세팅합니다.
+              contentDiv.innerHTML = rawContent.replace(/\n/g, '<br>') + `<button class="more-less-btn" type="button">간략히</button>`;
+              isOpen = true;
+            } else {
+              // 다시 접을 때 50자 자르고 더보기 버튼을 뒤에 다시 붙여줍니다.
+              contentDiv.innerHTML = rawContent.substring(0, 50) + '...' + `<button class="more-less-btn" type="button">더보기</button>`;
+              isOpen = false;
+            }
+            // HTML 구조가 완전히 새로고침되므로, 변경된 상태의 버튼 객체를 실시간으로 다시 추적해 이벤트를 새로 매핑합니다.
+            bindToggleEvent();
+          });
+
+          // 무한 루프나 참조 끊김을 방지하기 위해 버튼 이벤트를 재매핑하는 내부 헬퍼 함수
+          function bindToggleEvent() {
+            const currentBtn = entryEl.querySelector('.more-less-btn');
+            currentBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (!isOpen) {
+                contentDiv.innerHTML = rawContent.replace(/\n/g, '<br>') + `<button class="more-less-btn" type="button">간략히</button>`;
+                isOpen = true;
+              } else {
+                contentDiv.innerHTML = rawContent.substring(0, 50) + '...' + `<button class="more-less-btn" type="button">더보기</button>`;
+                isOpen = false;
+              }
+              bindToggleEvent(); // 재귀적으로 바인딩을 유지
+            });
+          }
+        }
 
         entryEl.addEventListener('click', () => {
           diaryContent.querySelectorAll('.diary-entry').forEach(el => el.classList.remove('selected'));
@@ -274,12 +350,10 @@
       });
       const result = await res.json();
       if (result.success) {
-        // diaryMap 메모리 업데이트
         for (const dateData of Object.values(diaryMap)) {
           const entry = dateData.entries.find(e => e.diaryId === currentDiaryId);
           if (entry) { entry.content = newContent; break; }
         }
-        // UI 업데이트
         const selectedEntry = document.querySelector('.diary-entry.selected');
         if (selectedEntry) {
           selectedEntry.dataset.content = newContent;
@@ -313,19 +387,19 @@
     }
   });
 
-  const now = new Date();
-  buildCalendar(now.getFullYear(), now.getMonth() + 1);
+  const initDate = new Date();
+  loadAndBuildCalendar(initDate.getFullYear(), initDate.getMonth() + 1);
 
   document.getElementById('prevBtn').addEventListener('click', () => {
     let m = currentMonth - 1, y = currentYear;
     if (m < 1) { m = 12; y--; }
-    buildCalendar(y, m);
+    loadAndBuildCalendar(y, m);
     resetDetail();
   });
   document.getElementById('nextBtn').addEventListener('click', () => {
     let m = currentMonth + 1, y = currentYear;
     if (m > 12) { m = 1; y++; }
-    buildCalendar(y, m);
+    loadAndBuildCalendar(y, m);
     resetDetail();
   });
 
