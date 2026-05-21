@@ -57,7 +57,23 @@ function getDateRange(period, offset) {
 }
 
 router.get('/', async (req, res) => {
-  if (!req.session.user) return res.redirect('/login');
+  // 비로그인이면 빈 데이터로 렌더링 (모달은 EJS에서 처리)
+  if (!req.session || !req.session.user) {
+    return res.render('statistics', {
+      path:          '/statistics',
+      user:          null,
+      period:        'month',
+      offset:        0,
+      periodLabel:   '',
+      totalDays:     0,
+      writtenDays:   0,
+      totalEntries:  0,
+      currentStreak: 0,
+      emotions:      [],
+      topEmotion:    null,
+      insight:       null,
+    });
+  }
 
   const userId = req.session.user.id;
   const period = ['day', 'week', 'month', 'quarter', 'year'].includes(req.query.period)
@@ -67,7 +83,6 @@ router.get('/', async (req, res) => {
   const { start, end, label, totalDays } = getDateRange(period, offset);
 
   try {
-    // 감정 분포 (DB emoji, color_code 직접 사용)
     const [emotionRows] = await db.query(`
       SELECT e.name, e.emoji, e.color_code, COUNT(*) AS cnt
       FROM diaries d
@@ -88,29 +103,43 @@ router.get('/', async (req, res) => {
       percent: Math.round((r.cnt / maxCount) * 100),
     }));
 
-    // 작성 일수
     const [[{ writtenDays }]] = await db.query(`
       SELECT COUNT(DISTINCT DATE(diary_date)) AS writtenDays
       FROM diaries
       WHERE user_id = ? AND DATE(diary_date) BETWEEN ? AND ?
     `, [userId, start, end]);
 
-    // 현재 스트릭
-    const [streakRows] = await db.query(`
-      SELECT COALESCE(streak_count, 0) AS currentStreak
-      FROM streak_logs
-      WHERE user_id = ?
-      ORDER BY streak_date DESC LIMIT 1
-    `, [userId]);
-    const currentStreak = streakRows.length > 0 ? streakRows[0].currentStreak : 0;
+    // 이걸로 교체
+    const [dateRows] = await db.query(`
+      SELECT DISTINCT DATE(diary_date) AS d
+      FROM diaries
+      WHERE user_id = ? AND DATE(diary_date) BETWEEN ? AND ?
+      ORDER BY d ASC
+    `, [userId, start, end]);
 
-    // Top 감정
+    let currentStreak = 0;
+    let tempStreak = 1;
+
+    if (dateRows.length > 0) {
+      for (let i = 1; i < dateRows.length; i++) {
+        const prev = new Date(dateRows[i - 1].d);
+        const curr = new Date(dateRows[i].d);
+        const diff = (curr - prev) / (1000 * 60 * 60 * 24);
+        if (diff === 1) {
+          tempStreak++;
+        } else {
+          currentStreak = Math.max(currentStreak, tempStreak);
+          tempStreak = 1;
+        }
+      }
+      currentStreak = Math.max(currentStreak, tempStreak);
+    }
+
     const topEmotion = emotions.length > 0 ? {
       ...emotions[0],
       percent: Math.round((emotions[0].count / totalEntries) * 100),
     } : null;
 
-    // 인사이트
     let insight = null;
     if (emotions.length > 0 && totalEntries > 0) {
       const positiveEmotions = ['기쁨', '설렘', '행복', '평온'];
