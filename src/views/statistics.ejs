@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Moodly · 감정 통계</title>
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/modal.css"/>
+  <link rel="stylesheet" href="/statistics.css">
 </head>
 <body>
   <div class="app-container">
@@ -14,24 +16,74 @@
   <div class="stats-page">
     <h2 class="stats-header">감정 통계</h2>
 
-    <!-- 기간 탭 -->
     <div class="period-tabs">
-      <a href="/statistics?period=day&offset=<%= offset %>"     class="<%= period === 'day'     ? 'active' : '' %>">일</a>
-      <a href="/statistics?period=week&offset=<%= offset %>"    class="<%= period === 'week'    ? 'active' : '' %>">주</a>
-      <a href="/statistics?period=month&offset=<%= offset %>"   class="<%= period === 'month'   ? 'active' : '' %>">월</a>
-      <a href="/statistics?period=quarter&offset=<%= offset %>" class="<%= period === 'quarter' ? 'active' : '' %>">분기</a>
-      <a href="/statistics?period=year&offset=<%= offset %>"    class="<%= period === 'year'    ? 'active' : '' %>">년</a>
+      <a href="/statistics?period=day&offset=0"     class="<%= period === 'day'     ? 'active' : '' %>">일</a>
+      <a href="/statistics?period=week&offset=0"    class="<%= period === 'week'    ? 'active' : '' %>">주</a>
+      <a href="/statistics?period=month&offset=0"   class="<%= period === 'month'   ? 'active' : '' %>">월</a>
+      <a href="/statistics?period=quarter&offset=0" class="<%= period === 'quarter' ? 'active' : '' %>">분기</a>
+      <a href="/statistics?period=year&offset=0"    class="<%= period === 'year'    ? 'active' : '' %>">년</a>
     </div>
 
-    <!-- 기간 네비게이션 -->
     <div class="period-nav">
       <a href="/statistics?period=<%= period %>&offset=<%= offset - 1 %>">&#8592;</a>
-      <span class="period-label"><%= periodLabel %></span>
+      <span class="period-label">
+        <%= periodLabel %>
+        <span onclick="openCustomPicker()" style="cursor:pointer; margin-left:6px;">📅</span>
+      </span>
       <% if (offset < 0) { %>
         <a href="/statistics?period=<%= period %>&offset=<%= offset + 1 %>">&#8594;</a>
       <% } else { %>
         <span style="width:36px"></span>
       <% } %>
+    </div>
+
+    <!-- 커스텀 피커 모달 -->
+    <div id="pickerOverlay" class="picker-overlay">
+      <div class="picker-modal">
+        <button onclick="closeCustomPicker()" class="picker-close">✕</button>
+
+        <!-- 년도 네비 (year 제외 공통) -->
+        <div class="picker-year-row" id="yearNavRow">
+          <button onclick="changePickerYear(-1)" class="picker-year-btn">&#8249;</button>
+          <span id="pickerYearLabel" class="picker-year-label"></span>
+          <button onclick="changePickerYear(1)" class="picker-year-btn">&#8250;</button>
+        </div>
+
+        <!-- 일/주: 미니 달력 -->
+        <div id="miniCalWrap" style="display:none;">
+          <div class="mini-cal-header">
+            <div class="mini-cal-dow">일</div>
+            <div class="mini-cal-dow">월</div>
+            <div class="mini-cal-dow">화</div>
+            <div class="mini-cal-dow">수</div>
+            <div class="mini-cal-dow">목</div>
+            <div class="mini-cal-dow">금</div>
+            <div class="mini-cal-dow">토</div>
+          </div>
+          <div class="mini-cal-grid" id="miniCalGrid"></div>
+        </div>
+
+        <!-- 월: 12개 버튼 -->
+        <div id="monthWrap" style="display:none;">
+          <div class="picker-grid" id="monthGrid"></div>
+        </div>
+
+        <!-- 분기: 4개 버튼 -->
+        <div id="quarterWrap" style="display:none;">
+          <div class="picker-grid picker-grid-2" id="quarterGrid"></div>
+        </div>
+
+        <!-- 년도: 그리드 -->
+        <div id="yearWrap" style="display:none;">
+          <div class="picker-year-row">
+            <button onclick="changeYearRange(-1)" class="picker-year-btn">&#8249;</button>
+            <span id="yearRangeLabel" class="picker-year-label"></span>
+            <button onclick="changeYearRange(1)" class="picker-year-btn">&#8250;</button>
+          </div>
+          <div class="picker-grid picker-grid-3" id="yearGrid"></div>
+        </div>
+
+      </div>
     </div>
 
     <!-- 요약 카드 -->
@@ -92,5 +144,231 @@
       </div>
     <% } %>
   </div>
+
+  <script>
+    const isLoggedIn = "<%= user ? 'true' : 'false' %>" === "true";
+    if (!isLoggedIn) {
+      window.addEventListener('load', () => {
+        if (typeof openLogin === 'function') openLogin();
+      });
+    }
+
+    const period = '<%= period %>';
+    const now = new Date();
+    const currentOffset = <%= offset %>;
+    let pickerYear = now.getFullYear();
+    let pickerMonth = now.getMonth(); // 0-indexed
+    let yearRangeStart = Math.floor(now.getFullYear() / 12) * 12;
+
+    // 현재 보고있는 날짜 계산
+    function getCurrentDate() {
+      if (period === 'day') {
+        const d = new Date(now);
+        d.setDate(d.getDate() + currentOffset);
+        return d;
+      } else if (period === 'week') {
+        const d = new Date(now);
+        d.setDate(d.getDate() + currentOffset * 7);
+        return d;
+      } else if (period === 'month') {
+        const d = new Date(now.getFullYear(), now.getMonth() + currentOffset, 1);
+        return d;
+      } else if (period === 'quarter') {
+        const nowQ = Math.floor(now.getMonth() / 3);
+        const totalQ = now.getFullYear() * 4 + nowQ + currentOffset;
+        const y = Math.floor(totalQ / 4);
+        const q = (totalQ % 4 + 4) % 4;
+        return new Date(y, q * 3, 1);
+      } else {
+        return new Date(now.getFullYear() + currentOffset, 0, 1);
+      }
+    }
+
+    function openCustomPicker() {
+      const cur = getCurrentDate();
+      pickerYear = cur.getFullYear();
+      pickerMonth = cur.getMonth();
+      yearRangeStart = Math.floor(pickerYear / 12) * 12;
+
+      // 모두 숨기기
+      ['miniCalWrap','monthWrap','quarterWrap','yearWrap'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+      });
+      document.getElementById('yearNavRow').style.display = 'flex';
+
+      if (period === 'day' || period === 'week') {
+        document.getElementById('miniCalWrap').style.display = 'block';
+        document.getElementById('pickerYearLabel').textContent = pickerYear + '년 ' + (pickerMonth + 1) + '월';
+        renderMiniCal();
+      } else if (period === 'month') {
+        document.getElementById('monthWrap').style.display = 'block';
+        document.getElementById('pickerYearLabel').textContent = pickerYear + '년';
+        renderMonthGrid();
+      } else if (period === 'quarter') {
+        document.getElementById('quarterWrap').style.display = 'block';
+        document.getElementById('pickerYearLabel').textContent = pickerYear + '년';
+        renderQuarterGrid();
+      } else if (period === 'year') {
+        document.getElementById('yearNavRow').style.display = 'none';
+        document.getElementById('yearWrap').style.display = 'block';
+        renderYearGrid();
+      }
+
+      document.getElementById('pickerOverlay').classList.add('open');
+    }
+
+    function closeCustomPicker() {
+      document.getElementById('pickerOverlay').classList.remove('open');
+    }
+
+    function changePickerYear(dir) {
+      if (period === 'day' || period === 'week') {
+        pickerMonth += dir;
+        if (pickerMonth < 0) { pickerMonth = 11; pickerYear--; }
+        if (pickerMonth > 11) { pickerMonth = 0; pickerYear++; }
+        document.getElementById('pickerYearLabel').textContent = pickerYear + '년 ' + (pickerMonth + 1) + '월';
+        renderMiniCal();
+      } else {
+        pickerYear += dir;
+        document.getElementById('pickerYearLabel').textContent = pickerYear + '년';
+        if (period === 'month') renderMonthGrid();
+        if (period === 'quarter') renderQuarterGrid();
+      }
+    }
+
+    // ── 미니 달력 (일/주) ──
+    function renderMiniCal() {
+      const grid = document.getElementById('miniCalGrid');
+      grid.innerHTML = '';
+
+      const firstDay = new Date(pickerYear, pickerMonth, 1).getDay();
+      const lastDate = new Date(pickerYear, pickerMonth + 1, 0).getDate();
+      const cur = getCurrentDate();
+
+      // 현재 선택된 주의 월~일 계산 (주 모드)
+      let weekStart = null, weekEnd = null;
+      if (period === 'week') {
+        const day = cur.getDay();
+        weekStart = new Date(cur);
+        weekStart.setDate(cur.getDate() - ((day + 6) % 7)); // 월요일
+        weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+      }
+
+      // 앞 빈칸
+      for (let i = 0; i < firstDay; i++) {
+        const el = document.createElement('div');
+        el.className = 'mini-cal-cell empty';
+        grid.appendChild(el);
+      }
+
+      for (let d = 1; d <= lastDate; d++) {
+        const date = new Date(pickerYear, pickerMonth, d);
+        const el = document.createElement('div');
+        el.className = 'mini-cal-cell';
+        el.textContent = d;
+
+        if (period === 'day') {
+          if (
+            d === cur.getDate() &&
+            pickerMonth === cur.getMonth() &&
+            pickerYear === cur.getFullYear()
+          ) el.classList.add('active');
+          el.onclick = () => selectDay(pickerYear, pickerMonth, d);
+
+        } else if (period === 'week') {
+          if (date >= weekStart && date <= weekEnd) el.classList.add('in-week');
+          if (date.getTime() === weekStart.getTime()) el.classList.add('week-start');
+          if (date.getTime() === weekEnd.getTime()) el.classList.add('week-end');
+          el.onclick = () => selectWeek(date);
+        }
+
+        grid.appendChild(el);
+      }
+    }
+
+    function selectDay(y, m, d) {
+      const selected = new Date(y, m, d);
+      const offset = Math.round((selected - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
+      window.location.href = `/statistics?period=day&offset=${offset}`;
+    }
+
+    function selectWeek(date) {
+      const day = date.getDay();
+      const mon = new Date(date);
+      mon.setDate(date.getDate() - ((day + 6) % 7));
+      const nowMon = new Date(now);
+      nowMon.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+      const offset = Math.round((mon - nowMon) / (86400000 * 7));
+      window.location.href = `/statistics?period=week&offset=${offset}`;
+    }
+
+    // ── 월 그리드 ──
+    function renderMonthGrid() {
+      const grid = document.getElementById('monthGrid');
+      grid.innerHTML = '';
+      const cur = getCurrentDate();
+      const names = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+      names.forEach((name, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'picker-btn';
+        btn.textContent = name;
+        if (pickerYear === cur.getFullYear() && i === cur.getMonth()) btn.classList.add('active');
+        btn.onclick = () => {
+          const offset = (pickerYear - now.getFullYear()) * 12 + (i - now.getMonth());
+          window.location.href = `/statistics?period=month&offset=${offset}`;
+        };
+        grid.appendChild(btn);
+      });
+    }
+
+    // ── 분기 그리드 ──
+    function renderQuarterGrid() {
+      const grid = document.getElementById('quarterGrid');
+      grid.innerHTML = '';
+      const cur = getCurrentDate();
+      const curQ = Math.floor(cur.getMonth() / 3);
+      const labels = [['1분기','1~3월'],['2분기','4~6월'],['3분기','7~9월'],['4분기','10~12월']];
+      labels.forEach(([name, sub], i) => {
+        const btn = document.createElement('button');
+        btn.className = 'picker-btn';
+        btn.innerHTML = name + '<span class="picker-btn-sub">' + sub + '</span>';
+        if (pickerYear === cur.getFullYear() && i === curQ) btn.classList.add('active');
+        btn.onclick = () => {
+          const nowQ = Math.floor(now.getMonth() / 3);
+          const offset = (pickerYear - now.getFullYear()) * 4 + (i - nowQ);
+          window.location.href = `/statistics?period=quarter&offset=${offset}`;
+        };
+        grid.appendChild(btn);
+      });
+    }
+
+    // ── 년도 그리드 ──
+    function renderYearGrid() {
+      const grid = document.getElementById('yearGrid');
+      grid.innerHTML = '';
+      const curYear = now.getFullYear() + currentOffset;
+      document.getElementById('yearRangeLabel').textContent = yearRangeStart + ' ~ ' + (yearRangeStart + 11);
+      for (let y = yearRangeStart; y < yearRangeStart + 12; y++) {
+        const btn = document.createElement('button');
+        btn.className = 'picker-btn' + (y === curYear ? ' active' : '');
+        btn.textContent = y + '년';
+        btn.onclick = () => {
+          const offset = y - now.getFullYear();
+          window.location.href = `/statistics?period=year&offset=${offset}`;
+        };
+        grid.appendChild(btn);
+      }
+    }
+
+    function changeYearRange(dir) {
+      yearRangeStart += dir * 12;
+      renderYearGrid();
+    }
+
+    document.getElementById('pickerOverlay').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('pickerOverlay')) closeCustomPicker();
+    });
+  </script>
 </body>
 </html>
