@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Moodly - 캘린더</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/style.css"/>
+  <link rel="stylesheet" href="/modal.css"/>
+  <link rel="stylesheet" href="/calendar.css"/>
+  <style>
+    /* 더보기/간략히 버튼 스타일 */
+    .more-less-btn {
+      background: none;
+      border: none;
+      color: #6b8f5e; 
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0;
+      margin-left: 6px; 
+      display: inline-block; 
+      vertical-align: baseline;
+    }
+    .more-less-btn:hover {
+      text-decoration: underline;
+      color: #5a7a4e;
+    }
+
+    /* 일기 본문 영역 가로 스크롤 방지 */
+    .entry-content {
+      word-break: break-all;      
+      overflow-wrap: break-word;  
+      white-space: pre-wrap;      
+      max-width: 100%;            
+    }
+
+    /* 일기 수정 시 이모지 선택기 스타일 */
+    .edit-emoji-selector {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      justify-content: flex-start;
+    }
+    .edit-emoji-btn {
+      background: #f5f5f5;
+      border: 2px solid transparent;
+      border-radius: 50%;
+      font-size: 24px;
+      width: 44px;
+      height: 44px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .edit-emoji-btn:hover {
+      transform: scale(1.1);
+    }
+    .edit-emoji-btn.selected {
+      background: #fff;
+      border-color: #6b8f5e;
+      box-shadow: 0 2px 8px rgba(107, 143, 94, 0.3);
+    }
+
+    /* 스마트폰 환경을 위한 모바일 반응형 스타일 추가 */
+    @media screen and (max-width: 768px) {
+      .cal-container {
+        display: flex;
+        flex-direction: column; 
+        gap: 20px;
+        padding: 12px;
+      }
+
+      .calendar-card, 
+      .detail-panel {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
+      }
+
+      .day-cell, 
+      .day-cell-empty {
+        min-height: 52px; 
+        padding: 4px;
+      }
+
+      .day-num {
+        font-size: 12px;
+      }
+
+      .emoji-icon {
+        font-size: 15px;
+        margin-top: 1px;
+      }
+
+      .detail-panel {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <%- include('partials/header') %>
+</div>
+
+<div class="cal-container">
+  <div class="calendar-card">
+    <div class="cal-header">
+      <button class="cal-nav-btn" id="prevBtn">&#8249;</button>
+      <h2 id="calTitle"></h2>
+      <button class="cal-nav-btn" id="nextBtn">&#8250;</button>
+    </div>
+    <div class="cal-grid" id="calGrid">
+      <div class="day-header sun">일</div>
+      <div class="day-header">월</div>
+      <div class="day-header">화</div>
+      <div class="day-header">수</div>
+      <div class="day-header">목</div>
+      <div class="day-header">금</div>
+      <div class="day-header sat">토</div>
+    </div>
+  </div>
+
+  <div class="detail-panel">
+    <div class="detail-empty" id="detailEmpty">날짜를 선택하면<br/>일기 내용이 표시됩니다 📖</div>
+
+    <div class="emotion-card" id="emotionCard">
+      <div class="big-emoji" id="detailEmoji"></div>
+      <div class="emotion-label" id="detailEmotion"></div>
+      <div class="diary-date" id="detailDate"></div>
+    </div>
+
+    <div class="diary-card" id="diaryCard">
+      <h3>일기</h3>
+      <div id="diaryContent"></div>
+    </div>
+
+    <div class="diary-edit-card" id="diaryEditCard">
+      <h3>일기 및 감정 수정</h3>
+      <div class="edit-emoji-selector" id="editEmojiSelector">
+        <button type="button" class="edit-emoji-btn" data-id="1">😊</button>
+        <button type="button" class="edit-emoji-btn" data-id="2">😌</button>
+        <button type="button" class="edit-emoji-btn" data-id="3">😐</button>
+        <button type="button" class="edit-emoji-btn" data-id="4">😢</button>
+        <button type="button" class="edit-emoji-btn" data-id="5">😡</button>
+      </div>
+      <textarea id="diaryEditInput"></textarea>
+    </div>
+
+    <div class="no-diary-msg" id="noDiaryMsg">
+      <div class="date-label" id="noDiaryDate"></div>
+      <a href="#" class="write-btn" id="writeDiaryBtn">+ 일기 쓰기</a>
+    </div>
+
+    <div class="detail-actions" id="detailActions">
+      <button class="btn-delete" id="deleteBtn">삭제하기</button>
+      <button class="btn-edit" id="editBtn">수정하기</button>
+    </div>
+
+    <div class="detail-actions" id="editActions">
+      <button class="btn-delete" id="cancelBtn">취소</button>
+      <button class="btn-edit" id="saveBtn">저장하기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const isLoggedIn = "<%= user ? 'true' : 'false' %>" === "true";
+  if (!isLoggedIn) {
+    window.addEventListener('load', () => {
+      if (typeof openLogin === 'function') openLogin();
+    });
+  }
+
+  let diaryMap = {};
+  let currentYear, currentMonth;
+  let currentDiaryId = null;
+  let currentEmotionId = null; 
+  let isEditMode = false;
+  let selectedDateKey = null;
+  let selectedCell = null; 
+
+  const emotionInfoMap = {
+    1: { emoji: '😊', name: '행복', color: '#fff9e6' },
+    2: { emoji: '😌', name: '평온', color: '#e6f9ff' },
+    3: { emoji: '😐', name: '보통', color: '#f5f5e8' },
+    4: { emoji: '😢', name: '슬픔', color: '#e6ecff' },
+    5: { emoji: '😡', name: '분노', color: '#ffe6e6' }
+  };
+
+  document.querySelectorAll('.edit-emoji-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.edit-emoji-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      currentEmotionId = parseInt(btn.dataset.id);
+    });
+  });
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function toKey(y, m, d) { return `${y}-${pad(m)}-${pad(d)}`; }
+
+  async function loadAndBuildCalendar(year, month) {
+    currentYear = year;
+    currentMonth = month;
+    document.getElementById('calTitle').textContent = `${year}년 ${month}월`;
+
+    try {
+      const response = await fetch(`/calendar?year=${year}&month=${month}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      const result = await response.json();
+      diaryMap = result.diaryMap || {};
+    } catch (e) {
+      console.error("실시간 데이터 조회 실패:", e);
+      diaryMap = {};
+    }
+
+    const grid = document.getElementById('calGrid');
+    while (grid.children.length > 7) grid.removeChild(grid.lastChild);
+
+    const firstDay = new Date(year, month - 1, 1).getDay();
+    const lastDate = new Date(year, month, 0).getDate();
+    const prevLastDate = new Date(year, month - 1, 0).getDate();
+    const today = new Date();
+    const todayKey = toKey(today.getFullYear(), today.getMonth() + 1, today.getDate());
+
+    for (let i = firstDay - 1; i >= 0; i--) {
+      const pm = month - 1 === 0 ? 12 : month - 1;
+      const py = month - 1 === 0 ? year - 1 : year;
+      grid.appendChild(makeDayCell(py, pm, prevLastDate - i, true));
+    }
+    for (let d = 1; d <= lastDate; d++) {
+      const cell = makeDayCell(year, month, d, false);
+      if (toKey(year, month, d) === todayKey) cell.classList.add('today');
+      grid.appendChild(cell);
+    }
+    const total = grid.children.length - 7;
+    const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+    for (let d = 1; d <= remaining; d++) {
+      const nm = month + 1 > 12 ? 1 : month + 1;
+      const ny = month + 1 > 12 ? year + 1 : year;
+      grid.appendChild(makeDayCell(ny, nm, d, true));
+    }
+
+    if (selectedDateKey) {
+      const cells = grid.querySelectorAll('.day-cell:not(.other-month)');
+      cells.forEach(c => {
+        const parts = selectedDateKey.split('-');
+        if (parseInt(c.querySelector('.day-num').textContent) === parseInt(parts[2])) {
+          c.classList.add('selected');
+          selectedCell = c;
+        }
+      });
+    }
+  }
+
+  function makeDayCell(year, month, day, otherMonth) {
+    const cell = document.createElement('div');
+    cell.classList.add('day-cell');
+    if (otherMonth) cell.classList.add('other-month');
+
+    const dow = new Date(year, month - 1, day).getDay();
+    if (dow === 0) cell.classList.add('sun');
+    if (dow === 6) cell.classList.add('sat');
+
+    const key = toKey(year, month, day);
+    const numEl = document.createElement('div');
+    numEl.className = 'day-num';
+    numEl.textContent = day;
+    cell.appendChild(numEl);
+
+    if (diaryMap[key]) {
+      const em = document.createElement('div');
+      em.className = 'emoji-icon';
+      em.textContent = diaryMap[key].emoji;
+      cell.appendChild(em);
+    }
+
+    if (!otherMonth) {
+      cell.addEventListener('click', () => selectDay(cell, key, year, month, day));
+    }
+    return cell;
+  }
+
+  function selectDay(cell, key, year, month, day) {
+    if (selectedCell) selectedCell.classList.remove('selected');
+    cell.classList.add('selected');
+    selectedCell = cell;
+    selectedDateKey = key;
+    exitEditMode();
+
+    const dateStr = `${year}년 ${month}월 ${day}일`;
+    document.getElementById('detailEmpty').style.display = 'none';
+
+    const data = diaryMap[key];
+    if (data) {
+      const ec = document.getElementById('emotionCard');
+      ec.classList.add('visible');
+      ec.style.background = data.colorCode || '#f5f5e8';
+      document.getElementById('detailEmoji').textContent = data.emoji;
+      document.getElementById('detailEmotion').textContent = data.emotion;
+      document.getElementById('detailDate').textContent = `${dateStr} 에 작성됨`;
+
+      const diaryCard = document.getElementById('diaryCard');
+      diaryCard.classList.add('visible');
+      const diaryContent = document.getElementById('diaryContent');
+      diaryContent.innerHTML = '';
+      
+      let hasCurrentActive = false;
+
+      data.entries.forEach((entry, idx) => {
+        if (idx > 0) {
+          const hr = document.createElement('hr');
+          hr.className = 'entry-divider';
+          diaryContent.appendChild(hr);
+        }
+
+        const entryEl = document.createElement('div');
+        entryEl.className = 'diary-entry';
+        entryEl.dataset.id = entry.diaryId;
+        entryEl.dataset.content = entry.content;
+        entryEl.dataset.emotionId = entry.emotionId || data.entries[0].emotionId;
+
+        const rawContent = entry.content;
+        const isLong = rawContent.length > 50;
+        const displayContent = isLong ? rawContent.substring(0, 50) + '...' : rawContent;
+
+        // 🛠️ [정밀 교정] 어떤 경로 오염 형식(역슬래시 등)이 오더라도 파일 이름만 완벽 차단 분리하여 이미지 로드
+        let cleanFileName = "";
+        if (entry.filePath) {
+          cleanFileName = entry.filePath.split('/').pop().split('\\').pop();
+        }
+
+        entryEl.innerHTML = `
+          <div class="entry-meta">
+            <span>${entry.emoji} ${entry.emotion}</span>
+            <span class="entry-time">${entry.time}</span>
+          </div>
+          ${entry.filePath ? `
+          <div class="entry-media" style="margin: 8px 0; text-align: left;">
+            ${entry.filePath.match(/\.(mp4|mov|avi|wmv)$/i)
+              ? `<video src="/uploads/${cleanFileName}" controls style="max-width:140px;max-height:100px;border-radius:8px;object-fit:cover;"></video>`
+              : `<img src="/uploads/${cleanFileName}" style="max-width:140px;max-height:100px;border-radius:8px;object-fit:cover;display:block;" />`
+            }
+          </div>` : ''}
+          <div class="entry-content">${displayContent}${isLong ? `<button class="more-less-btn" type="button">더보기</button>` : ''}</div>
+        `;
+
+        if (isLong) {
+          const btn = entryEl.querySelector('.more-less-btn');
+          const contentDiv = entryEl.querySelector('.entry-content');
+          let isOpen = false;
+
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!isOpen) {
+              contentDiv.innerHTML = rawContent.replace(/\n/g, '<br>') + `<button class="more-less-btn" type="button">간략히</button>`;
+              isOpen = true;
+            } else {
+              contentDiv.innerHTML = rawContent.substring(0, 50) + '...' + `<button class="more-less-btn" type="button">더보기</button>`;
+              isOpen = false;
+            }
+            bindToggleEvent();
+          });
+
+          function bindToggleEvent() {
+            const currentBtn = entryEl.querySelector('.more-less-btn');
+            currentBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (!isOpen) {
+                contentDiv.innerHTML = rawContent.replace(/\n/g, '<br>') + `<button class="more-less-btn" type="button">간략히</button>`;
+                isOpen = true;
+              } else {
+                contentDiv.innerHTML = rawContent.substring(0, 50) + '...' + `<button class="more-less-btn" type="button">더보기</button>`;
+                isOpen = false;
+              }
+              bindToggleEvent();
+            });
+          }
+        }
+
+        if (currentDiaryId && parseInt(entry.diaryId) === parseInt(currentDiaryId)) {
+          entryEl.classList.add('selected');
+          hasCurrentActive = true;
+        }
+
+        entryEl.addEventListener('click', () => {
+          diaryContent.querySelectorAll('.diary-entry').forEach(el => el.classList.remove('selected'));
+          entryEl.classList.add('selected');
+          currentDiaryId = entry.diaryId;
+          currentEmotionId = entry.emotionId; 
+          document.getElementById('detailActions').classList.add('visible');
+        });
+
+        diaryContent.appendChild(entryEl);
+      });
+
+      if (hasCurrentActive) {
+        document.getElementById('detailActions').classList.add('visible');
+      } else {
+        document.getElementById('detailActions').classList.remove('visible');
+      }
+      
+      document.getElementById('noDiaryMsg').classList.remove('visible');
+      document.getElementById('diaryEditCard').classList.remove('visible');
+      document.getElementById('editActions').classList.remove('visible');
+
+    } else {
+      currentDiaryId = null;
+      document.getElementById('emotionCard').classList.remove('visible');
+      document.getElementById('diaryCard').classList.remove('visible');
+      document.getElementById('detailActions').classList.remove('visible');
+      document.getElementById('diaryEditCard').classList.remove('visible');
+      document.getElementById('editActions').classList.remove('visible');
+
+      const nd = document.getElementById('noDiaryMsg');
+      nd.classList.add('visible');
+      document.getElementById('noDiaryDate').textContent = dateStr;
+    }
+  }
+
+  document.getElementById('writeDiaryBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (selectedDateKey) location.href = `/write?date=${selectedDateKey}`;
+  });
+
+  document.getElementById('editBtn').addEventListener('click', () => {
+    if (!currentDiaryId) return;
+    const selectedEntry = document.querySelector('.diary-entry.selected');
+    const content = selectedEntry ? selectedEntry.dataset.content : '';
+    
+    document.querySelectorAll('.edit-emoji-btn').forEach(b => {
+      b.classList.remove('selected');
+      if (parseInt(b.dataset.id) === currentEmotionId) {
+        b.classList.add('selected');
+      }
+    });
+
+    document.getElementById('diaryEditInput').value = content;
+    document.getElementById('diaryCard').classList.remove('visible');
+    document.getElementById('detailActions').classList.remove('visible');
+    document.getElementById('diaryEditCard').classList.add('visible');
+    document.getElementById('editActions').classList.add('visible');
+    isEditMode = true;
+  });
+
+  document.getElementById('cancelBtn').addEventListener('click', exitEditMode);
+
+  function exitEditMode() {
+    isEditMode = false;
+    document.getElementById('diaryEditCard').classList.remove('visible');
+    document.getElementById('editActions').classList.remove('visible');
+    if (currentDiaryId) {
+      document.getElementById('diaryCard').classList.add('visible');
+      document.getElementById('detailActions').classList.add('visible');
+    } else if (diaryMap[selectedDateKey]) {
+      document.getElementById('diaryCard').classList.add('visible');
+    }
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    if (!currentDiaryId) return;
+    const newContent = document.getElementById('diaryEditInput').value.trim();
+    if (!newContent) return;
+
+    try {
+      const res = await fetch(`/write/${currentDiaryId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newContent, emotionId: currentEmotionId }), 
+      });
+      const result = await res.json();
+      
+      if (result.success) {
+        if (diaryMap[selectedDateKey]) {
+          const targetEntry = diaryMap[selectedDateKey].entries.find(e => parseInt(e.diaryId) === parseInt(currentDiaryId));
+          if (targetEntry) {
+            targetEntry.content = newContent;
+            targetEntry.emotionId = currentEmotionId;
+            if (emotionInfoMap[currentEmotionId]) {
+              targetEntry.emoji = emotionInfoMap[currentEmotionId].emoji;
+              targetEntry.emotion = emotionInfoMap[currentEmotionId].name;
+            }
+          }
+
+          diaryMap[selectedDateKey].emoji = diaryMap[selectedDateKey].entries[0].emoji;
+          diaryMap[selectedDateKey].emotion = diaryMap[selectedDateKey].entries[0].emotion;
+          if (emotionInfoMap[diaryMap[selectedDateKey].entries[0].emotionId]) {
+            diaryMap[selectedDateKey].colorCode = emotionInfoMap[diaryMap[selectedDateKey].entries[0].emotionId].color;
+          }
+        }
+
+        const activeYear = currentYear;
+        const activeMonth = currentMonth;
+        const activeKey = selectedDateKey;
+        const activeCell = selectedCell;
+
+        await loadAndBuildCalendar(activeYear, activeMonth);
+        
+        const parts = activeKey.split('-');
+        selectDay(activeCell, activeKey, parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]));
+        
+        exitEditMode();
+      } else {
+        alert('수정 실패');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('수정 중 오류 발생');
+    }
+  });
+
+  // ★ [실시간 삭제 & 선택날짜 고정 전용 인터셉터 핸들러]
+  document.getElementById('deleteBtn').addEventListener('click', async () => {
+    if (!currentDiaryId) return;
+    if (!confirm('이 일기를 삭제할까요?')) return;
+
+    try {
+      const res = await fetch(`/write/${currentDiaryId}`, { method: 'DELETE' });
+      const result = await res.json();
+      
+      if (result.success) {
+        // 새로고침(reload)을 강제 차단하고, 로컬 메모리 상태 객체(diaryMap)에서 지워진 일기만 가공 차단
+        if (diaryMap[selectedDateKey]) {
+          diaryMap[selectedDateKey].entries = diaryMap[selectedDateKey].entries.filter(
+            e => parseInt(e.diaryId) !== parseInt(currentDiaryId)
+          );
+
+          if (diaryMap[selectedDateKey].entries.length > 0) {
+            diaryMap[selectedDateKey].emoji = diaryMap[selectedDateKey].entries[0].emoji;
+            diaryMap[selectedDateKey].emotion = diaryMap[selectedDateKey].entries[0].emotion;
+            if (emotionInfoMap[diaryMap[selectedDateKey].entries[0].emotionId]) {
+              diaryMap[selectedDateKey].colorCode = emotionInfoMap[diaryMap[selectedDateKey].entries[0].emotionId].color;
+            }
+          } else {
+            delete diaryMap[selectedDateKey];
+          }
+        }
+
+        const activeYear = currentYear;
+        const activeMonth = currentMonth;
+        const activeKey = selectedDateKey;
+        const activeCell = selectedCell;
+
+        // 달력 구조 리프레시
+        await loadAndBuildCalendar(activeYear, activeMonth);
+
+        // 삭제 처리 이후 원래 보던 날짜 목록 화면단 세팅 유지 가동
+        currentDiaryId = null;
+        const parts = activeKey.split('-');
+        selectDay(activeCell, activeKey, parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]));
+
+      } else {
+        alert('삭제 실패');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('삭제 중 오류 발생');
+    }
+  });
+
+  const initDate = new Date();
+  loadAndBuildCalendar(initDate.getFullYear(), initDate.getMonth() + 1);
+
+  document.getElementById('prevBtn').addEventListener('click', () => {
+    let m = currentMonth - 1, y = currentYear;
+    if (m < 1) { m = 12; y--; }
+    loadAndBuildCalendar(y, m);
+    resetDetail();
+  });
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    let m = currentMonth + 1, y = currentYear;
+    if (m > 12) { m = 1; y++; }
+    loadAndBuildCalendar(y, m);
+    resetDetail();
+  });
+
+  function resetDetail() {
+    currentDiaryId = null;
+    isEditMode = false;
+    selectedDateKey = null;
+    document.getElementById('detailEmpty').style.display = '';
+    document.getElementById('emotionCard').classList.remove('visible');
+    document.getElementById('diaryCard').classList.remove('visible');
+    document.getElementById('diaryEditCard').classList.remove('visible');
+    document.getElementById('detailActions').classList.remove('visible');
+    document.getElementById('editActions').classList.remove('visible');
+    document.getElementById('noDiaryMsg').classList.remove('visible');
+  }
+</script>
+</body>
+</html>
