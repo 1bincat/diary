@@ -276,3 +276,338 @@
   overflow-y: auto;
 }
 
+/* ────────────────────────────────────────────────────────
+   📸 미디어 파일 수정/삭제 및 캘린더 반응형 보완 스타일 정의
+   ──────────────────────────────────────────────────────── */
+
+/* 더보기/간략히 버튼 스타일 */
+.more-less-btn {
+  background: none;
+  border: none;
+  color: #6b8f5e; 
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 6px; 
+  display: inline-block; 
+  vertical-align: baseline;
+}
+.more-less-btn:hover {
+  text-decoration: underline;
+  color: #5a7a4e;
+}
+
+/* 일기 본문 영역 가로 스크롤 방지 */
+.entry-content {
+  word-break: break-all;      
+  overflow-wrap: break-word;  
+  white-space: pre-wrap;      
+  max-width: 100%;            
+}
+
+/* 일반 일기 카드 내부 사진/영상 뷰어 스타일 */
+.media-preview-item {
+  max-width: 100%;
+  max-height: 120px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin: 6px 0;
+}
+
+/* 일기 수정 시 이모지 선택기 스타일 */
+.edit-emoji-selector {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  justify-content: flex-start;
+}
+.edit-emoji-btn {
+  background: #f5f5f5;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  font-size: 24px;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.edit-emoji-btn:hover {
+  transform: scale(1.1);
+}
+.edit-emoji-btn.selected {
+  background: #fff;
+  border-color: #6b8f5e;
+  box-shadow: 0 2px 8px rgba(107, 143, 94, 0.3);
+}
+
+/* 수정 모드 내 미디어 업로드 외부 박스 */
+.edit-media-wrapper {
+  margin-top: 10px;
+  border: 1.5px dashed #e0ddd6;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+}
+
+/* 미리보기 파일 컴포넌트 프레임 (X버튼 배치용) */
+.edit-media-preview-box {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+.edit-media-preview-box img,
+.edit-media-preview-box video {
+  max-width: 100px;
+  max-height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+/* 미디어 개별 삭제(초기화) 빨간 버튼 X */
+.edit-media-remove-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff5c5c;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 파일 업로드 버튼 라벨 커스텀 버튼화 */
+.edit-media-label {
+  display: inline-block;
+  background: #f5f0ea;
+  color: #666;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 📱 스마트폰 환경 모바일 반응형 브레이크포인트 최적화 */
+@media screen and (max-width: 768px) {
+  .cal-container {
+    display: flex;
+    flex-direction: column; 
+    gap: 20px;
+    padding: 12px;
+  }
+  .calendar-card, 
+  .detail-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+  .day-cell, 
+  .day-cell-empty {
+    min-height: 52px;
+    padding: 4px;
+  }
+  .day-num {
+    font-size: 12px;
+  }
+  .emoji-icon {
+    font-size: 15px;
+    margin-top: 1px;
+  }
+  .detail-panel {
+    padding: 16px;
+  }
+}
+
+
+.cal-media-container {
+  margin: 6px 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden; /* 가로 스크롤 탈출 방지 */
+}
+
+.cal-media-main-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 📸 대표 이미지를 눈에 띄게 컴팩트한 크기로 축소 고정 */
+.media-preview-item.main-thumb {
+  max-width: 80px !important;
+  max-height: 65px !important;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+/* ➕ 간단하게 바꾼 플러스(+) 모양의 원형 미니멀 버튼 */
+.cal-media-more-trigger-btn.simple-plus {
+  background: #f5f0ea;
+  border: 1px solid #e0ddd6;
+  color: #6b8f5e;
+  font-size: 19px;
+  font-weight: 700;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%; /* 동그라미 모양 */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0; /* 버튼이 찌그러지지 않게 방지 */
+  padding: 0;
+}
+
+.cal-media-more-trigger-btn.simple-plus:hover {
+  background: #6b8f5e;
+  color: #ffffff;
+  border-color: #6b8f5e;
+  transform: scale(1.05);
+}
+
+/* 펼쳐졌을 때 서랍장 내부 파일 크기도 미니멀하게 세팅 */
+.cal-media-hidden-drawer {
+  background: #faf9f6;
+  border: 1px dashed #e2dfd8;
+  border-radius: 8px;
+  padding: 6px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ────────────────────────────────────────────────────────
+   📸 작성 화면 + 캘린더 통합 미디어 크게 보기 (라이트박스 모달 마스터)
+   ──────────────────────────────────────────────────────── */
+
+.preview-wrapper img,
+.preview-wrapper video,
+.timeline-media img,
+.timeline-media video {
+  cursor: pointer;
+}
+
+
+/* 미디어들이 가로로 배치되는 컨테이너 상자 */
+.cal-media-container {
+  margin: 10px 0;
+  width: 100%;
+  max-width: 100%;
+  display: flex !important;
+  gap: 8px !important;
+  overflow-x: auto !important; /* 🚀 가로 스크롤 활성화 */
+  overflow-y: hidden !important;
+  white-space: nowrap !important;
+  padding-bottom: 5px; /* 스크롤바와 이미지 사이 여백 */
+  
+  /* 윈도우/크롬 스크롤바 디자인을 아담하고 깔끔하게 제어 */
+  scrollbar-width: thin;
+  scrollbar-color: #6b8f5e #f5f0ea;
+}
+
+/* 크롬, 사파리, 웨일용 스크롤바 커스텀 */
+.cal-media-container::-webkit-scrollbar {
+  height: 5px; /* 스크롤바 두께 */
+}
+.cal-media-container::-webkit-scrollbar-track {
+  background: #f5f0ea;
+  border-radius: 4px;
+}
+.cal-media-container::-webkit-scrollbar-thumb {
+  background: #6b8f5e;
+  border-radius: 4px;
+}
+
+/* 📸 가로 트랙 안에 배치될 개별 미디어 아이템 틀 */
+.cal-media-scroll-item {
+  position: relative !important;
+  display: inline-block !important;
+  width: 80px !important;
+  height: 65px !important;
+  flex-shrink: 0 !important; /* 🚀 중요: 칸이 좁아져도 이미지가 찌그러지지 않고 고정 */
+}
+
+/* 이미지 및 비디오 원형 스펙 규격 고정 */
+.cal-media-scroll-item .media-preview-item {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 6px !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+/* ▶ 동영상 미니 배지 스타일 고정 */
+.cal-media-scroll-item .video-badge {
+  position: absolute !important;
+  bottom: 4px !important;
+  left: 4px !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  color: #ffffff !important;
+  font-size: 9px !important;
+  padding: 1px 4px !important;
+  border-radius: 3px !important;
+  font-weight: bold !important;
+  pointer-events: none !important;
+  line-height: 1 !important;
+}
+
+/* 파이어폭스 브라우저용 */
+.detail-panel {
+  scrollbar-width: thin !important;
+  scrollbar-color: #6b8f5e #f5f0ea !important;
+}
+
+/* 크롬, 웨일, 사파리 브라우저용 세로 스크롤바 정밀 피팅 */
+.detail-panel::-webkit-scrollbar {
+  width: 4px !important; /* 👈 똑같이 4px로 아주 얇고 깔끔하게 세팅 */
+}
+
+.detail-panel::-webkit-scrollbar-track {
+  background: #f5f0ea !important; /* 캘린더 화면 톤에 맞춘 부드러운 배경 */
+  border-radius: 10px !important;
+}
+
+.detail-panel::-webkit-scrollbar-thumb {
+  background: #6b8f5e !important;
+  border-radius: 10px !important;
+}
+
+.detail-panel::-webkit-scrollbar-thumb:hover {
+  background: #45a049 !important;
+}
+
+/* 파이어폭스 브라우저용 회색 보정 */
+.cal-media-container {
+  scrollbar-width: thin !important;
+  scrollbar-color: #d8d8d8 #f5f5f5 !important;
+}
+
+/* 크롬, 웨일, 사파리 브라우저용 미니 가로 스크롤바 정밀 피팅 */
+.cal-media-container::-webkit-scrollbar {
+  height: 4px !important; /* 가로 스크롤바 두께 */
+}
+
+.cal-media-container::-webkit-scrollbar-track {
+  background: #f5f5f5 !important; /* 트랙 바탕을 깔끔한 오프화이트로 세팅 */
+  border-radius: 2px !important;
+}
+
+.cal-media-container::-webkit-scrollbar-thumb {
+  background: #d8d8d8 !important; /* 👈 초록색에서 작성화면과 동일한 옅은 회색으로 변경! */
+  border-radius: 2px !important;
+}
+
+.cal-media-container::-webkit-scrollbar-thumb:hover {
+  background: #c0c0c0 !important; /* 마우스 올렸을 때 은은하게 반응하는 그레이 */
+}

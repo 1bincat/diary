@@ -1,6 +1,21 @@
 /* write.css */
 
-/* ─── 전체 레이아웃 ─── */
+/* ─── 🚀 전체 화면 가로 스크롤 방지 및 기본 폰트 고정 ─── */
+html, body {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important; /* 화면 전체 넘침 절대 방지 */
+  margin: 0;
+  padding: 0;
+}
+
+.page {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+/* ─── 전체 레이아웃 (정밀 비율 조정) ─── */
 .write-layout {
   display: flex;
   gap: 2.5rem;
@@ -10,6 +25,8 @@
   margin-left: auto;
   margin-right: auto;
   padding: 0 40px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .write-main {
@@ -17,16 +34,19 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  min-width: 0; /* 중요: 자식 요소 때문에 늘어나는 현상을 막아 원래 크기 유지 */
 }
 
 .write-side {
   flex: 1;
   min-width: 320px;
+  max-width: 400px; /* 사이드 영역 가로폭 안전 고정 */
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   position: sticky;
   top: 20px;
+  box-sizing: border-box;
 }
 
 /* ─── 감정 이모지 선택 ─── */
@@ -81,6 +101,8 @@
   box-shadow: var(--shadow-card, 0 4px 12px rgba(0,0,0,0.05));
   padding: 1.5rem;
   position: relative; 
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .write-textarea {
@@ -99,47 +121,51 @@
   background: transparent;
   line-height: 1.8;
   padding-bottom: 20px;
+  box-sizing: border-box;
 }
 
-/* ─── 📸 신규 추가: 미디어 프리뷰 레이아웃 ─── */
+/* ─── 📸 다중 등록 실시간 미리보기 가로 배치 처리 ─── */
 .media-preview-container {
   display: none;
   margin-top: 10px;
-  margin-bottom: 60px; /* 푸터 영역 확보를 위한 마진 조절 */
+  margin-bottom: 20px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .preview-wrapper {
   position: relative;
   display: inline-block;
-  max-width: 100%;
 }
 
 .preview-wrapper img,
 .preview-wrapper video {
-  max-width: 100%;
-  max-height: 250px;
-  border-radius: 12px;
+  max-width: 100px;
+  max-height: 80px;
+  border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  object-fit: contain;
+  object-fit: cover;
+  display: block;
 }
 
 .remove-preview-btn {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: -6px;
+  right: -6px;
   background: #ff5252;
   color: white;
   border: none;
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  font-size: 12px;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   transition: background 0.15s;
+  z-index: 10;
 }
 .remove-preview-btn:hover {
   background: #e03e3e;
@@ -161,7 +187,6 @@
   gap: 12px;
 }
 
-/* 파일 첨부 커스텀 버튼 감성 스타일링 */
 .media-upload-label {
   font-family: 'Noto Sans KR', sans-serif;
   font-weight: 700;
@@ -238,6 +263,8 @@
   border-radius: var(--radius-card, 20px);
   box-shadow: var(--shadow-card, 0 4px 12px rgba(0,0,0,0.05));
   padding: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* ─── 사이드 카드 ─── */
@@ -246,6 +273,8 @@
   border-radius: var(--radius-card, 20px);
   box-shadow: var(--shadow-card, 0 4px 12px rgba(0,0,0,0.05));
   padding: 1.2rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .streak-num {
@@ -282,43 +311,180 @@
   transition: all 0.3s ease;
 }
 
+/* ─── 오늘의 타임라인 본체 틀 고정 ─── */
+.timeline-card {
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+.timeline-container {
+  max-height: 400px;
+  overflow-y: auto;
+  width: 100% !important;
+}
+
+.timeline-item {
+  border-left: 2px solid #4CAF50;
+  padding-left: 15px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
 .timeline-item p {
   word-break: break-all;
   margin: 5px 0;
   font-family: 'Noto Sans KR', sans-serif;
 }
 
-.timeline-media {
+/* ─── 🚀 오늘의 타임라인 이미지 가로 스크롤 (초록색 ➡️ 완전 옅은 회색 스크롤바 전면 교체) ─── */
+.cal-media-container {
+  margin-top: 8px;
   margin-bottom: 8px;
+  display: flex !important;
+  gap: 8px !important;
+  overflow-x: auto !important; 
+  overflow-y: hidden !important;
+  white-space: nowrap !important;
+  
+  width: 100% !important;
+  max-width: 100% !important; 
+  box-sizing: border-box !important;
+  
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: #d8d8d8 #f5f5f5 !important; /* 파이어폭스용 회색 보정 */
+}
+
+/* 크롬, 웨일, 사파리 브라우저 전용 미니 가로 스크롤바 정밀 피팅 */
+.cal-media-container::-webkit-scrollbar {
+  height: 4px; /* 가로 스크롤바 두께 */
+}
+.cal-media-container::-webkit-scrollbar-track {
+  background: #f5f5f5 !important; /* 트랙 바탕을 깔끔한 오프화이트 색상으로 변경 */
+  border-radius: 2px;
+}
+.cal-media-container::-webkit-scrollbar-thumb {
+  background: #d8d8d8 !important; /* 👈 [핵심수정] 초록색에서 무채색 계열의 완전 옅은 회색으로 변경! */
+  border-radius: 2px;
+}
+.cal-media-container::-webkit-scrollbar-thumb:hover {
+  background: #c0c0c0 !important; /* 마우스 올렸을 때 살짝만 더 어두워지는 은은한 그레이 */
+}
+
+.cal-media-scroll-item {
+  position: relative !important;
+  display: inline-block !important;
+  width: 80px !important;
+  height: 65px !important;
+  flex-shrink: 0 !important;
+}
+
+.cal-media-scroll-item img,
+.cal-media-scroll-item video {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  border: 1px solid #f1f3f5;
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+.cal-media-scroll-item img:hover,
+.cal-media-scroll-item video:hover {
+  transform: scale(1.03);
+}
+
+/* 동영상 재생 미니 배지 마크 유지 */
+.cal-media-scroll-item .video-badge {
+  position: absolute !important;
+  bottom: 4px !important;
+  left: 4px !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  color: #ffffff !important;
+  font-size: 8px !important;
+  padding: 1px 3px !important;
+  border-radius: 2px !important;
+  font-weight: bold !important;
+  pointer-events: none !important;
+  line-height: 1 !important;
+  z-index: 2;
+}
+
+.timeline-container {
+  scrollbar-width: thin !important;
+  scrollbar-color: #6b8f5e #f1f3f5 !important;
+}
+.timeline-container::-webkit-scrollbar {
+  width: 4px !important;
+}
+.timeline-container::-webkit-scrollbar-track {
+  background: #f1f3f5 !important;
+  border-radius: 10px !important;
+}
+.timeline-container::-webkit-scrollbar-thumb {
+  background: #6b8f5e !important;
+  border-radius: 10px !important;
+}
+.timeline-container::-webkit-scrollbar-thumb:hover {
+  background: #45a049 !important;
 }
 
 /* 반응형 */
 @media (max-width: 900px) {
   .write-layout { flex-direction: column; }
-  .write-side { position: static; width: 100%; }
+  .write-side { position: static; width: 100%; max-width: 100%; }
 }
 
-/* ─── 오늘의 타임라인 미디어 액자 스타일 고도화 ─── */
-.timeline-media {
-  margin-top: 8px;
-  margin-bottom: 8px;
-  display: flex;
-  justify-content: flex-start;
+/* ─── 📸 다중 등록 실시간 미리보기 박스 레이아웃 정밀 밸런싱 ─── */
+.media-preview-container {
+  display: none;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
-.timeline-media img,
-.timeline-media video {
-  max-width: 140px;          /* 타임라인에 어울리는 아담한 가로 폭 크기 제한 */
-  max-height: 100px;         /* 세로 높이 제한 */
-  border-radius: 8px;        /* 부드러운 라운딩 모서리 처리 */
-  object-fit: cover;         /* 비율을 유지하면서 꽉 차게 채우기 */
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08); /* 은은한 그림자 효과 */
-  border: 1px solid #f1f3f5;  /* 깔끔한 외곽선 보정 */
-  transition: transform 0.2s ease;
+.preview-wrapper {
+  position: relative !important; /* 🚀 배지가 썸네일 밖으로 튀어나가지 않도록 봉인 */
+  display: inline-block !important;
+  width: 100px !important;
+  height: 80px !important;
+  flex-shrink: 0 !important;
 }
 
-/* 타임라인 이미지에 마우스를 올리면 살짝 확대되는 감성 효과 */
-.timeline-media img:hover,
-.timeline-media video:hover {
-  transform: scale(1.03);
+.preview-wrapper img,
+.preview-wrapper video {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  object-fit: cover !important; /* 🚀 비율이 찌그러지지 않고 캘린더처럼 꽉 차게 피팅 */
+  display: block;
+}
+
+/* 삭제 버튼 위치를 배지와 겹치지 않게 상단으로 고정 */
+.remove-preview-btn {
+  position: absolute !important;
+  top: -6px !important;
+  right: -6px !important;
+  background: #ff5252 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 50% !important;
+  width: 20px !important;
+  height: 20px !important;
+  font-size: 10px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+  transition: background 0.15s;
+  z-index: 10 !important;
+}
+.remove-preview-btn:hover {
+  background: #e03e3e !important;
 }

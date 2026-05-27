@@ -14,10 +14,6 @@ app.set('view engine', 'ejs');
 // 📂 정적 파일(이미지, CSS 등)을 웹 브라우저에 제공하는 서랍장 기능 활성화
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ★ [치명적 엑박 해결 핵심 교정] 
-// 브라우저가 /uploads/파일명 형태로 이미지를 요청했을 때, public/uploads 폴더 안의 파일을 바로 찾아갈 수 있도록 통로 개통!
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
-
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
@@ -34,9 +30,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// 라우터 파일 가져오기
+// 라우터 파일 가져오기 (★ communityRouter 가져오는 코드 제거 완료!)
 const calendarRouter   = require('./routes/calendar');
-const communityRouter  = require('./routes/community');
 const statisticsRouter = require('./routes/statistics');
 const loginRouter      = require('./routes/login');
 const signupRouter     = require('./routes/signup');
@@ -48,13 +43,12 @@ const homeRouter       = require('./routes/home');
 // 특정 단어로 명확하게 시작하는 주소들을 위쪽에 배치하여 우선권을 줍니다.
 app.use('/login',      loginRouter);
 app.use('/signup',     signupRouter);
-app.use('/calendar',   calendarRouter);
-app.use('/community',  communityRouter);
+app.use('/calendar',   calendarRouter); // (★ app.use('/community', ...) 코드 제거 완료!)
 app.use('/settings',   settingsRouter);
 app.use('/write',      writeRouter);
 app.use('/statistics', statisticsRouter);
 
-// ★ [핵심 교정] 가장 넓은 범위인 '/' 대문 라우터는 다른 주소들을 방해하지 않게 맨 아래로 내립니다.
+// 가장 넓은 범위인 '/' 대문 라우터는 다른 주소들을 방해하지 않게 맨 아래로 내립니다.
 app.use('/',          homeRouter); 
 
 // 로그아웃

@@ -8,100 +8,18 @@
   <link rel="stylesheet" href="/style.css"/>
   <link rel="stylesheet" href="/modal.css"/>
   <link rel="stylesheet" href="/calendar.css"/>
-  <style>
-    /* 더보기/간략히 버튼 스타일 */
-    .more-less-btn {
-      background: none;
-      border: none;
-      color: #6b8f5e; 
-      font-weight: 600;
-      font-size: 13px;
-      cursor: pointer;
-      padding: 0;
-      margin-left: 6px; 
-      display: inline-block; 
-      vertical-align: baseline;
-    }
-    .more-less-btn:hover {
-      text-decoration: underline;
-      color: #5a7a4e;
-    }
-
-    /* 일기 본문 영역 가로 스크롤 방지 */
-    .entry-content {
-      word-break: break-all;      
-      overflow-wrap: break-word;  
-      white-space: pre-wrap;      
-      max-width: 100%;            
-    }
-
-    /* 일기 수정 시 이모지 선택기 스타일 */
-    .edit-emoji-selector {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 12px;
-      justify-content: flex-start;
-    }
-    .edit-emoji-btn {
-      background: #f5f5f5;
-      border: 2px solid transparent;
-      border-radius: 50%;
-      font-size: 24px;
-      width: 44px;
-      height: 44px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s ease;
-    }
-    .edit-emoji-btn:hover {
-      transform: scale(1.1);
-    }
-    .edit-emoji-btn.selected {
-      background: #fff;
-      border-color: #6b8f5e;
-      box-shadow: 0 2px 8px rgba(107, 143, 94, 0.3);
-    }
-
-    /* 스마트폰 환경을 위한 모바일 반응형 스타일 추가 */
-    @media screen and (max-width: 768px) {
-      .cal-container {
-        display: flex;
-        flex-direction: column; 
-        gap: 20px;
-        padding: 12px;
-      }
-
-      .calendar-card, 
-      .detail-panel {
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box;
-      }
-
-      .day-cell, 
-      .day-cell-empty {
-        min-height: 52px; 
-        padding: 4px;
-      }
-
-      .day-num {
-        font-size: 12px;
-      }
-
-      .emoji-icon {
-        font-size: 15px;
-        margin-top: 1px;
-      }
-
-      .detail-panel {
-        padding: 16px;
-      }
-    }
-  </style>
 </head>
 <body>
+
+<div id="lightboxModal" class="lightbox-modal" style="display: none; position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0, 0, 0, 0.9) !important; z-index: 9999999 !important; align-items: center; justify-content: center; user-select: none;">
+  <button type="button" class="lightbox-close-btn" id="lightboxCloseBtn" style="position: absolute !important; top: 25px !important; right: 30px !important; background: none !important; border: none !important; color: #ffffff !important; font-size: 44px !important; cursor: pointer !important; z-index: 10000005 !important; line-height: 1;">✕</button>
+  
+  <button type="button" id="lightboxPrevBtn" class="lightbox-arrow-btn" style="display: block !important; position: absolute !important; left: 40px !important; top: 50% !important; transform: translateY(-50%) !important; background: none !important; border: none !important; color: #ffffff !important; font-size: 45px !important; font-weight: bold !important; font-family: sans-serif !important; cursor: pointer !important; z-index: 10000005 !important; padding: 10px !important; width: auto !important; height: auto !important; line-height: 1 !important; margin: 0 !important; opacity: 1 !important;">&lt;</button>
+  
+  <div id="lightboxViewArea" style="display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; z-index: 10000000 !important;"></div>
+  
+  <button type="button" id="lightboxNextBtn" class="lightbox-arrow-btn" style="display: block !important; position: absolute !important; right: 40px !important; top: 50% !important; transform: translateY(-50%) !important; background: none !important; border: none !important; color: #ffffff !important; font-size: 45px !important; font-weight: bold !important; font-family: sans-serif !important; cursor: pointer !important; z-index: 10000005 !important; padding: 10px !important; width: auto !important; height: auto !important; line-height: 1 !important; margin: 0 !important; opacity: 1 !important;">&gt;</button>
+</div>
 
 <div class="app-container">
   <%- include('partials/header') %>
@@ -139,18 +57,6 @@
       <div id="diaryContent"></div>
     </div>
 
-    <div class="diary-edit-card" id="diaryEditCard">
-      <h3>일기 및 감정 수정</h3>
-      <div class="edit-emoji-selector" id="editEmojiSelector">
-        <button type="button" class="edit-emoji-btn" data-id="1">😊</button>
-        <button type="button" class="edit-emoji-btn" data-id="2">😌</button>
-        <button type="button" class="edit-emoji-btn" data-id="3">😐</button>
-        <button type="button" class="edit-emoji-btn" data-id="4">😢</button>
-        <button type="button" class="edit-emoji-btn" data-id="5">😡</button>
-      </div>
-      <textarea id="diaryEditInput"></textarea>
-    </div>
-
     <div class="no-diary-msg" id="noDiaryMsg">
       <div class="date-label" id="noDiaryDate"></div>
       <a href="#" class="write-btn" id="writeDiaryBtn">+ 일기 쓰기</a>
@@ -159,11 +65,6 @@
     <div class="detail-actions" id="detailActions">
       <button class="btn-delete" id="deleteBtn">삭제하기</button>
       <button class="btn-edit" id="editBtn">수정하기</button>
-    </div>
-
-    <div class="detail-actions" id="editActions">
-      <button class="btn-delete" id="cancelBtn">취소</button>
-      <button class="btn-edit" id="saveBtn">저장하기</button>
     </div>
   </div>
 </div>
@@ -180,25 +81,8 @@
   let currentYear, currentMonth;
   let currentDiaryId = null;
   let currentEmotionId = null; 
-  let isEditMode = false;
   let selectedDateKey = null;
-  let selectedCell = null; 
-
-  const emotionInfoMap = {
-    1: { emoji: '😊', name: '행복', color: '#fff9e6' },
-    2: { emoji: '😌', name: '평온', color: '#e6f9ff' },
-    3: { emoji: '😐', name: '보통', color: '#f5f5e8' },
-    4: { emoji: '😢', name: '슬픔', color: '#e6ecff' },
-    5: { emoji: '😡', name: '분노', color: '#ffe6e6' }
-  };
-
-  document.querySelectorAll('.edit-emoji-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.edit-emoji-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      currentEmotionId = parseInt(btn.dataset.id);
-    });
-  });
+  let selectedCell = null;
 
   function pad(n) { return String(n).padStart(2, '0'); }
   function toKey(y, m, d) { return `${y}-${pad(m)}-${pad(d)}`; }
@@ -291,7 +175,6 @@
     cell.classList.add('selected');
     selectedCell = cell;
     selectedDateKey = key;
-    exitEditMode();
 
     const dateStr = `${year}년 ${month}월 ${day}일`;
     document.getElementById('detailEmpty').style.display = 'none';
@@ -329,10 +212,26 @@
         const isLong = rawContent.length > 50;
         const displayContent = isLong ? rawContent.substring(0, 50) + '...' : rawContent;
 
-        // 🛠️ [정밀 교정] 어떤 경로 오염 형식(역슬래시 등)이 오더라도 파일 이름만 완벽 차단 분리하여 이미지 로드
-        let cleanFileName = "";
-        if (entry.filePath) {
-          cleanFileName = entry.filePath.split('/').pop().split('\\').pop();
+        // 🚀 [가로 스크롤 레이아웃 대개편] 첨부된 모든 미디어를 한 트랙에 넣고 가로로 횡대 나열
+        let mediaHtml = '';
+        if (entry.filePaths && entry.filePaths.length > 0) {
+          mediaHtml += `<div class="cal-media-container">`;
+          
+          entry.filePaths.forEach(path => {
+            const cleanName = path.split('/').pop().split('\\').pop();
+            const isVideo = cleanName.match(/\.(mp4|mov|avi|wmv)$/i);
+            
+            mediaHtml += `<div class="cal-media-scroll-item">`;
+            if (isVideo) {
+              mediaHtml += `<video src="/uploads/${cleanName}" class="media-preview-item"></video>`;
+              mediaHtml += `<div class="video-badge">▶</div>`; // 캘린더에서 작동 잘 되던 비디오 뱃지 유지
+            } else {
+              mediaHtml += `<img src="/uploads/${cleanName}" class="media-preview-item" />`;
+            }
+            mediaHtml += `</div>`;
+          });
+          
+          mediaHtml += `</div>`;
         }
 
         entryEl.innerHTML = `
@@ -340,13 +239,7 @@
             <span>${entry.emoji} ${entry.emotion}</span>
             <span class="entry-time">${entry.time}</span>
           </div>
-          ${entry.filePath ? `
-          <div class="entry-media" style="margin: 8px 0; text-align: left;">
-            ${entry.filePath.match(/\.(mp4|mov|avi|wmv)$/i)
-              ? `<video src="/uploads/${cleanFileName}" controls style="max-width:140px;max-height:100px;border-radius:8px;object-fit:cover;"></video>`
-              : `<img src="/uploads/${cleanFileName}" style="max-width:140px;max-height:100px;border-radius:8px;object-fit:cover;display:block;" />`
-            }
-          </div>` : ''}
+          ${mediaHtml}
           <div class="entry-content">${displayContent}${isLong ? `<button class="more-less-btn" type="button">더보기</button>` : ''}</div>
         `;
 
@@ -406,16 +299,12 @@
       }
       
       document.getElementById('noDiaryMsg').classList.remove('visible');
-      document.getElementById('diaryEditCard').classList.remove('visible');
-      document.getElementById('editActions').classList.remove('visible');
 
     } else {
       currentDiaryId = null;
       document.getElementById('emotionCard').classList.remove('visible');
       document.getElementById('diaryCard').classList.remove('visible');
       document.getElementById('detailActions').classList.remove('visible');
-      document.getElementById('diaryEditCard').classList.remove('visible');
-      document.getElementById('editActions').classList.remove('visible');
 
       const nd = document.getElementById('noDiaryMsg');
       nd.classList.add('visible');
@@ -429,92 +318,10 @@
   });
 
   document.getElementById('editBtn').addEventListener('click', () => {
-    if (!currentDiaryId) return;
-    const selectedEntry = document.querySelector('.diary-entry.selected');
-    const content = selectedEntry ? selectedEntry.dataset.content : '';
-    
-    document.querySelectorAll('.edit-emoji-btn').forEach(b => {
-      b.classList.remove('selected');
-      if (parseInt(b.dataset.id) === currentEmotionId) {
-        b.classList.add('selected');
-      }
-    });
-
-    document.getElementById('diaryEditInput').value = content;
-    document.getElementById('diaryCard').classList.remove('visible');
-    document.getElementById('detailActions').classList.remove('visible');
-    document.getElementById('diaryEditCard').classList.add('visible');
-    document.getElementById('editActions').classList.add('visible');
-    isEditMode = true;
+    if (!currentDiaryId || !selectedDateKey) return;
+    location.href = `/write?date=${selectedDateKey}&editId=${currentDiaryId}`;
   });
 
-  document.getElementById('cancelBtn').addEventListener('click', exitEditMode);
-
-  function exitEditMode() {
-    isEditMode = false;
-    document.getElementById('diaryEditCard').classList.remove('visible');
-    document.getElementById('editActions').classList.remove('visible');
-    if (currentDiaryId) {
-      document.getElementById('diaryCard').classList.add('visible');
-      document.getElementById('detailActions').classList.add('visible');
-    } else if (diaryMap[selectedDateKey]) {
-      document.getElementById('diaryCard').classList.add('visible');
-    }
-  }
-
-  document.getElementById('saveBtn').addEventListener('click', async () => {
-    if (!currentDiaryId) return;
-    const newContent = document.getElementById('diaryEditInput').value.trim();
-    if (!newContent) return;
-
-    try {
-      const res = await fetch(`/write/${currentDiaryId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newContent, emotionId: currentEmotionId }), 
-      });
-      const result = await res.json();
-      
-      if (result.success) {
-        if (diaryMap[selectedDateKey]) {
-          const targetEntry = diaryMap[selectedDateKey].entries.find(e => parseInt(e.diaryId) === parseInt(currentDiaryId));
-          if (targetEntry) {
-            targetEntry.content = newContent;
-            targetEntry.emotionId = currentEmotionId;
-            if (emotionInfoMap[currentEmotionId]) {
-              targetEntry.emoji = emotionInfoMap[currentEmotionId].emoji;
-              targetEntry.emotion = emotionInfoMap[currentEmotionId].name;
-            }
-          }
-
-          diaryMap[selectedDateKey].emoji = diaryMap[selectedDateKey].entries[0].emoji;
-          diaryMap[selectedDateKey].emotion = diaryMap[selectedDateKey].entries[0].emotion;
-          if (emotionInfoMap[diaryMap[selectedDateKey].entries[0].emotionId]) {
-            diaryMap[selectedDateKey].colorCode = emotionInfoMap[diaryMap[selectedDateKey].entries[0].emotionId].color;
-          }
-        }
-
-        const activeYear = currentYear;
-        const activeMonth = currentMonth;
-        const activeKey = selectedDateKey;
-        const activeCell = selectedCell;
-
-        await loadAndBuildCalendar(activeYear, activeMonth);
-        
-        const parts = activeKey.split('-');
-        selectDay(activeCell, activeKey, parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]));
-        
-        exitEditMode();
-      } else {
-        alert('수정 실패');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('수정 중 오류 발생');
-    }
-  });
-
-  // ★ [실시간 삭제 & 선택날짜 고정 전용 인터셉터 핸들러]
   document.getElementById('deleteBtn').addEventListener('click', async () => {
     if (!currentDiaryId) return;
     if (!confirm('이 일기를 삭제할까요?')) return;
@@ -524,7 +331,6 @@
       const result = await res.json();
       
       if (result.success) {
-        // 새로고침(reload)을 강제 차단하고, 로컬 메모리 상태 객체(diaryMap)에서 지워진 일기만 가공 차단
         if (diaryMap[selectedDateKey]) {
           diaryMap[selectedDateKey].entries = diaryMap[selectedDateKey].entries.filter(
             e => parseInt(e.diaryId) !== parseInt(currentDiaryId)
@@ -533,9 +339,6 @@
           if (diaryMap[selectedDateKey].entries.length > 0) {
             diaryMap[selectedDateKey].emoji = diaryMap[selectedDateKey].entries[0].emoji;
             diaryMap[selectedDateKey].emotion = diaryMap[selectedDateKey].entries[0].emotion;
-            if (emotionInfoMap[diaryMap[selectedDateKey].entries[0].emotionId]) {
-              diaryMap[selectedDateKey].colorCode = emotionInfoMap[diaryMap[selectedDateKey].entries[0].emotionId].color;
-            }
           } else {
             delete diaryMap[selectedDateKey];
           }
@@ -546,10 +349,8 @@
         const activeKey = selectedDateKey;
         const activeCell = selectedCell;
 
-        // 달력 구조 리프레시
         await loadAndBuildCalendar(activeYear, activeMonth);
 
-        // 삭제 처리 이후 원래 보던 날짜 목록 화면단 세팅 유지 가동
         currentDiaryId = null;
         const parts = activeKey.split('-');
         selectDay(activeCell, activeKey, parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]));
@@ -581,16 +382,140 @@
 
   function resetDetail() {
     currentDiaryId = null;
-    isEditMode = false;
     selectedDateKey = null;
     document.getElementById('detailEmpty').style.display = '';
     document.getElementById('emotionCard').classList.remove('visible');
     document.getElementById('diaryCard').classList.remove('visible');
-    document.getElementById('diaryEditCard').classList.remove('visible');
     document.getElementById('detailActions').classList.remove('visible');
-    document.getElementById('editActions').classList.remove('visible');
     document.getElementById('noDiaryMsg').classList.remove('visible');
   }
+
+  // 라이트박스 갤러리 작동 자바스크립트
+  document.addEventListener('DOMContentLoaded', () => {
+    const lightbox = document.getElementById('lightboxModal');
+    const viewArea = document.getElementById('lightboxViewArea');
+    const closeBtn = document.getElementById('lightboxCloseBtn');
+    const prevBtn = document.getElementById('lightboxPrevBtn');
+    const nextBtn = document.getElementById('lightboxNextBtn');
+
+    let currentLightboxMediaArray = [];
+    let currentLightboxIndex = 0;
+
+    function updateArrowStates() {
+      if (currentLightboxMediaArray.length <= 1) {
+        prevBtn.style.setProperty('display', 'none', 'important');
+        nextBtn.style.setProperty('display', 'none', 'important');
+        return;
+      }
+      
+      prevBtn.style.setProperty('display', 'block', 'important');
+      nextBtn.style.setProperty('display', 'block', 'important');
+
+      if (currentLightboxIndex === 0) {
+        prevBtn.style.opacity = '0.15';
+        prevBtn.style.cursor = 'not-allowed';
+        prevBtn.style.pointerEvents = 'none';
+      } else {
+        prevBtn.style.opacity = '1';
+        prevBtn.style.cursor = 'pointer';
+        prevBtn.style.pointerEvents = 'auto';
+      }
+
+      if (currentLightboxIndex === currentLightboxMediaArray.length - 1) {
+        nextBtn.style.opacity = '0.15';
+        nextBtn.style.cursor = 'not-allowed';
+        nextBtn.style.pointerEvents = 'none';
+      } else {
+        nextBtn.style.opacity = '1';
+        nextBtn.style.cursor = 'pointer';
+        nextBtn.style.pointerEvents = 'auto';
+      }
+    }
+
+    function renderLightboxContent() {
+      if (currentLightboxMediaArray.length === 0) return;
+      const src = currentLightboxMediaArray[currentLightboxIndex];
+      const isVideo = src.match(/\.(mp4|mov|avi|wmv)/i);
+
+      if (isVideo) {
+        viewArea.innerHTML = `<video src="${src}" controls class="lightbox-content" autoplay style="max-width: 85% !important; max-height: 80vh !important; object-fit: contain !important; border-radius: 12px; box-shadow: 0 4px 30px rgba(0,0,0,0.5);"></video>`;
+      } else {
+        viewArea.innerHTML = `<img src="${src}" class="lightbox-content" style="max-width: 85% !important; max-height: 80vh !important; object-fit: contain !important; border-radius: 12px; box-shadow: 0 4px 30px rgba(0,0,0,0.5);" />`;
+      }
+      updateArrowStates();
+    }
+
+    function openLightbox(mediaSrcList, startIndex) {
+      currentLightboxMediaArray = mediaSrcList;
+      currentLightboxIndex = startIndex;
+      
+      renderLightboxContent();
+      
+      lightbox.style.setProperty('display', 'flex', 'important'); 
+      lightbox.classList.add('show');
+      document.body.style.overflow = 'hidden'; 
+    }
+
+    function closeLightbox() {
+      lightbox.style.setProperty('display', 'none', 'important');
+      lightbox.classList.remove('show');
+      document.body.style.overflow = ''; 
+      currentLightboxMediaArray = [];
+      currentLightboxIndex = 0;
+      setTimeout(() => { viewArea.innerHTML = ''; }, 150); 
+    }
+
+    function moveLeft() {
+      if (currentLightboxIndex > 0) {
+        currentLightboxIndex--;
+        renderLightboxContent();
+      }
+    }
+
+    function moveRight() {
+      if (currentLightboxIndex < currentLightboxMediaArray.length - 1) {
+        currentLightboxIndex++;
+        renderLightboxContent();
+      }
+    }
+
+    // 🚀 가로 갤러리 내 아이템 클릭 추적 엔진 보정
+    document.body.addEventListener('click', (e) => {
+      if (e.target.classList.contains('media-preview-item')) {
+        const container = e.target.closest('.cal-media-container');
+        if (container) {
+          e.stopPropagation();
+          const allMediaNodes = Array.from(container.querySelectorAll('.media-preview-item'));
+          const mediaSrcList = allMediaNodes.map(node => node.src);
+          const clickIndex = allMediaNodes.indexOf(e.target);
+
+          openLightbox(mediaSrcList, clickIndex >= 0 ? clickIndex : 0);
+        }
+      }
+    });
+
+    prevBtn.addEventListener('click', (e) => { e.stopPropagation(); moveLeft(); });
+    nextBtn.addEventListener('click', (e) => { e.stopPropagation(); moveRight(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (!lightbox.classList.contains('show')) return;
+
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        moveRight();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        moveLeft();
+      } else if (e.key === 'Escape') {
+        closeLightbox();
+      }
+    });
+
+    closeBtn.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox || e.target === viewArea) closeLightbox();
+    });
+  });
 </script>
 </body>
 </html>

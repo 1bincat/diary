@@ -10,6 +10,16 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+  <div id="lightboxModal" class="lightbox-modal" style="display: none; position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0, 0, 0, 0.9) !important; z-index: 9999999 !important; align-items: center; justify-content: center; user-select: none;">
+    <button type="button" class="lightbox-close-btn" id="lightboxCloseBtn" style="position: absolute !important; top: 25px !important; right: 30px !important; background: none !important; border: none !important; color: #ffffff !important; font-size: 44px !important; cursor: pointer !important; z-index: 10000005 !important; line-height: 1;">✕</button>
+    
+    <button type="button" id="lightboxPrevBtn" class="lightbox-arrow-btn" style="display: block !important; position: absolute !important; left: 40px !important; top: 50% !important; transform: translateY(-50%) !important; background: none !important; border: none !important; color: #ffffff !important; font-size: 45px !important; font-weight: bold !important; font-family: sans-serif !important; cursor: pointer !important; z-index: 10000005 !important; padding: 10px !important; width: auto !important; height: auto !important; line-height: 1 !important; margin: 0 !important; opacity: 1 !important;">&lt;</button>
+    
+    <div id="lightboxViewArea" style="display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; z-index: 10000000 !important;"></div>
+    
+    <button type="button" id="lightboxNextBtn" class="lightbox-arrow-btn" style="display: block !important; position: absolute !important; right: 40px !important; top: 50% !important; transform: translateY(-50%) !important; background: none !important; border: none !important; color: #ffffff !important; font-size: 45px !important; font-weight: bold !important; font-family: sans-serif !important; cursor: pointer !important; z-index: 10000005 !important; padding: 10px !important; width: auto !important; height: auto !important; line-height: 1 !important; margin: 0 !important; opacity: 1 !important;">&gt;</button>
+  </div>
+
   <div class="page">
     <div class="app-container">
       <%- include('partials/header') %>
@@ -19,11 +29,11 @@
           <div class="emotion-header" style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1rem;">
             <h2 id="currentDate" style="font-family: 'Noto Sans KR', sans-serif; font-weight: 900; font-size: 1.4rem; margin: 0; color: #333; line-height: 1.4; text-align: left;"></h2>
             <div class="emotion-row" style="display: flex; gap: 0.8rem;">
-              <button class="emotion-btn happy <%= (selectedEmotion === 1) ? 'selected' : '' %>" data-id="1">😊</button>
-              <button class="emotion-btn calm <%= (selectedEmotion === 2) ? 'selected' : '' %>" data-id="2">😌</button>
-              <button class="emotion-btn normal <%= (selectedEmotion === 3) ? 'selected' : '' %>" data-id="3">😐</button>
-              <button class="emotion-btn sad <%= (selectedEmotion === 4) ? 'selected' : '' %>" data-id="4">😢</button>
-              <button class="emotion-btn angry <%= (selectedEmotion === 5) ? 'selected' : '' %>" data-id="5">😡</button>
+              <button class="emotion-btn happy" data-id="1">😊</button>
+              <button class="emotion-btn calm" data-id="2">😌</button>
+              <button class="emotion-btn normal" data-id="3">😐</button>
+              <button class="emotion-btn sad" data-id="4">😢</button>
+              <button class="emotion-btn angry" data-id="5">😡</button>
             </div>
           </div>
 
@@ -35,9 +45,8 @@
             <div class="write-card-footer">
               <div class="footer-left">
                 <button class="voice-btn" type="button">🎙 음성 입력</button>
-                
                 <label for="mediaFileInput" class="media-upload-label">🔗 파일 첨부</label>
-                <input type="file" id="mediaFileInput" accept="image/*, video/*" style="display: none;" />
+                <input type="file" id="mediaFileInput" accept="image/*, video/*" multiple style="display: none;" />
               </div>
               <div class="footer-right">
                 <span class="char-count"><span id="charCount">0</span> / 500자</span>
@@ -81,14 +90,22 @@
                     <div style="position: absolute; left: -6px; top: 0; width: 10px; height: 10px; border-radius: 50%; background: #4CAF50;"></div>
                     <small style="color: #888;"><%= item.time %></small>
                     
-                    <% if (item.file_path) { %>
-                      <% const fileName = item.file_path.split('/').pop().split('\\').pop(); %>
-                      <div class="timeline-media" style="margin-top: 8px; margin-bottom: 8px;">
-                        <% if (fileName.match(/\.(mp4|mov|avi|wmv)$/i)) { %>
-                          <video src="/uploads/<%= fileName %>" controls style="max-width: 140px; max-height: 100px; border-radius: 8px; object-fit: cover;"></video>
-                        <% } else { %>
-                          <img src="/uploads/<%= fileName %>" style="max-width: 140px; max-height: 100px; border-radius: 8px; object-fit: cover; display: block;" />
-                        <% } %>
+                    <% if (item.file_paths && item.file_paths.length > 0) { %>
+                      <div class="cal-media-container">
+                        <% item.file_paths.forEach(path => { %>
+                          <% 
+                            const cleanName = path.split('/').pop().split('\\').pop(); 
+                            const isVideo = cleanName.match(/\.(mp4|mov|avi|wmv)$/i);
+                          %>
+                          <div class="cal-media-scroll-item">
+                            <% if (isVideo) { %>
+                              <video src="/uploads/<%= cleanName %>" class="media-preview-item"></video>
+                              <div class="video-badge">▶</div>
+                            <% } else { %>
+                              <img src="/uploads/<%= cleanName %>" class="media-preview-item" />
+                            <% } %>
+                          </div>
+                        <% }) %>
                       </div>
                     <% } %>
 
@@ -121,8 +138,15 @@
       document.getElementById('full-' + index).style.display = show ? 'block' : 'none';
     }
 
-    let selectedEmotionId = Number("<%= (typeof selectedEmotion !== 'undefined') ? selectedEmotion : 0 %>");
+    // 백엔드에서 넘겨주는 수정 데이터 온전히 안착
+    const editData = <%- JSON.stringify(typeof editData !== 'undefined' ? editData : null) %>;
+    
+    let selectedEmotionId = editData ? editData.emotion_id : Number("<%= (typeof selectedEmotion !== 'undefined') ? selectedEmotion : 0 %>");
     const displayDateStr = "<%= displayDate %>";
+    
+    let selectedNewFiles = [];
+    // 기존 등록되어 있던 파일 리스트 안전 보존 배열
+    let existingFiles = editData ? (editData.file_path ? editData.file_path.split(',') : []) : [];
 
     document.addEventListener('DOMContentLoaded', () => {
       const dateElement = document.getElementById('currentDate');
@@ -130,7 +154,13 @@
         const p = displayDateStr.split('-');
         const dateObj = new Date(p[0], p[1]-1, p[2]);
         const week = ['일', '월', '화', '수', '목', '금', '토'];
-        dateElement.innerHTML = `${p[0]}년<br>${parseInt(p[1])}월 ${parseInt(p[2])}일 ${week[dateObj.getDay()]}요일`;
+        
+        if (editData) {
+          dateElement.innerHTML = `${p[0]}년 ${parseInt(p[1])}월 ${parseInt(p[2])}일<br><span style="color:#6b8f5e; font-size:1.1rem;">일기 수정 중... ✏️</span>`;
+          document.getElementById('saveBtn').textContent = '수정완료';
+        } else {
+          dateElement.innerHTML = `${p[0]}년<br>${parseInt(p[1])}월 ${parseInt(p[2])}일 ${week[dateObj.getDay()]}요일`;
+        }
       }
 
       const textarea = document.getElementById('diaryContent');
@@ -138,42 +168,98 @@
       const mediaFileInput = document.getElementById('mediaFileInput');
       const mediaPreviewContainer = document.getElementById('mediaPreviewContainer');
 
-      // 🖼️ 파일 업로드 변경 이벤트 리스너 (실시간 미리보기 구현)
-      mediaFileInput.addEventListener('change', () => {
-        const file = mediaFileInput.files[0];
+      // 🖼️ 다중 파일 실시간 미리보기 (글 상자 안 미리보기도 캘린더와 동일하게 ▶ 미니 배지 스펙 적용)
+      function refreshMultiPreviews() {
         mediaPreviewContainer.innerHTML = '';
+        if (existingFiles.length === 0 && selectedNewFiles.length === 0) {
+          mediaPreviewContainer.style.display = 'none';
+          return;
+        }
+        mediaPreviewContainer.style.display = 'flex';
 
-        if (file) {
+        // 1. 수정 모드인 경우: 기존 저장되어 있던 파일들 렌더링
+        existingFiles.forEach((path, idx) => {
+          if (!path) return;
+          const cleanName = path.split('/').pop().split('\\').pop();
+          const wrapper = document.createElement('div');
+          wrapper.className = 'preview-wrapper';
+          wrapper.style.position = 'relative'; // 🚀 배지 위치 잠금용 고정 축
+          
+          if (cleanName.match(/\.(mp4|mov|avi|wmv)$/i)) {
+            wrapper.innerHTML = `
+              <video src="/uploads/${cleanName}" class="media-preview-item"></video>
+              <div class="video-badge" style="position: absolute !important; bottom: 4px !important; right: 4px !important; background: rgba(0, 0, 0, 0.6) !important; color: #ffffff !important; font-size: 8px !important; padding: 1px 3px !important; border-radius: 2px !important; font-weight: bold !important; pointer-events: none !important; line-height: 1 !important; z-index: 2;">▶</div>
+              <button type="button" class="remove-preview-btn">✕</button>
+            `;
+          } else {
+            wrapper.innerHTML = `
+              <img src="/uploads/${cleanName}" class="media-preview-item" />
+              <button type="button" class="remove-preview-btn">✕</button>
+            `;
+          }
+          wrapper.querySelector('.remove-preview-btn').addEventListener('click', () => {
+            existingFiles.splice(idx, 1);
+            refreshMultiPreviews();
+          });
+          mediaPreviewContainer.appendChild(wrapper);
+        });
+
+        // 2. 새로 추가한 파일 파일들 렌더링
+        selectedNewFiles.forEach((file, idx) => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'preview-wrapper';
+          wrapper.style.position = 'relative'; // 🚀 배지 위치 잠금용 고정 축
+          
           const reader = new FileReader();
           reader.onload = (e) => {
-            const fileType = file.type;
-            mediaPreviewContainer.style.display = 'block';
-
-            if (fileType.startsWith('video/')) {
-              mediaPreviewContainer.innerHTML = `
-                <div class="preview-wrapper">
-                  <video src="${e.target.result}" controls></video>
-                  <button type="button" class="remove-preview-btn" id="removePreviewBtn">✕</button>
-                </div>`;
+            if (file.type.startsWith('video/')) {
+              wrapper.innerHTML = `
+                <video src="${e.target.result}" class="media-preview-item"></video>
+                <div class="video-badge" style="position: absolute !important; bottom: 4px !important; right: 4px !important; background: rgba(0, 0, 0, 0.6) !important; color: #ffffff !important; font-size: 8px !important; padding: 1px 3px !important; border-radius: 2px !important; font-weight: bold !important; pointer-events: none !important; line-height: 1 !important; z-index: 2;">▶</div>
+                <button type="button" class="remove-preview-btn">✕</button>
+              `;
             } else {
-              mediaPreviewContainer.innerHTML = `
-                <div class="preview-wrapper">
-                  <img src="${e.target.result}" alt="미리보기"/>
-                  <button type="button" class="remove-preview-btn" id="removePreviewBtn">✕</button>
-                </div>`;
+              wrapper.innerHTML = `
+                <img src="${e.target.result}" class="media-preview-item" />
+                <button type="button" class="remove-preview-btn">✕</button>
+              `;
             }
-
-            document.getElementById('removePreviewBtn').addEventListener('click', () => {
-              mediaFileInput.value = '';
-              mediaPreviewContainer.innerHTML = '';
-              mediaPreviewContainer.style.display = 'none';
+            wrapper.querySelector('.remove-preview-btn').addEventListener('click', () => {
+              selectedNewFiles.splice(idx, 1);
+              refreshMultiPreviews();
             });
           };
           reader.readAsDataURL(file);
+          mediaPreviewContainer.appendChild(wrapper);
+        });
+      }
+
+      // 수정모드 진입 시 글 내용 불러오기 및 실시간 바인딩
+      if (editData) {
+        textarea.value = editData.content;
+        document.getElementById('charCount').textContent = editData.content.length;
+        refreshMultiPreviews();
+      }
+
+      // 감정 버튼 클릭 및 기존 수정 대상 감정 활성화 동기화
+      const btns = document.querySelectorAll('.emotion-btn');
+      if (selectedEmotionId > 0) {
+        const targetBtn = document.querySelector(`.emotion-btn[data-id="${selectedEmotionId}"]`);
+        if (targetBtn) targetBtn.classList.add('selected');
+      }
+
+      mediaFileInput.addEventListener('change', () => {
+        const files = Array.from(mediaFileInput.files);
+        if (files.length + selectedNewFiles.length + existingFiles.length > 5) {
+          alert('파일은 최대 5개까지만 첨부할 수 있습니다.');
+          mediaFileInput.value = '';
+          return;
         }
+        files.forEach(file => { selectedNewFiles.push(file); });
+        mediaFileInput.value = ''; 
+        refreshMultiPreviews();
       });
 
-      const btns = document.querySelectorAll('.emotion-btn');
       btns.forEach(btn => {
         btn.addEventListener('click', () => {
           btns.forEach(b => b.classList.remove('selected'));
@@ -186,6 +272,7 @@
         document.getElementById('charCount').textContent = textarea.value.length;
       });
 
+      // 차트 엔진 구동
       const canvas = document.getElementById('emotionChart');
       const diaryData = JSON.parse(canvas.getAttribute('data-diaries') || '[]');
       if (diaryData.length > 0) {
@@ -206,20 +293,14 @@
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-              y: {
-                min: 1, max: 5,
-                ticks: {
-                  stepSize: 1,
-                  callback: (v) => ({5:'😊', 4:'😌', 3:'😐', 2:'😢', 1:'😠'}[v])
-                }
-              }
+              y: { min: 1, max: 5, ticks: { stepSize: 1, callback: (v) => ({5:'😊', 4:'😌', 3:'😐', 2:'😢', 1:'😠'}[v]) } }
             },
             plugins: { legend: { display: false } }
           }
         });
       }
 
-      // 음성 인식 기능
+      // 음성인식 엔진 구동
       const voiceBtn = document.querySelector('.voice-btn');
       let isRecognizing = false;
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -230,48 +311,22 @@
 
         voiceBtn.addEventListener('click', (e) => {
           e.preventDefault();
-          if (isRecognizing) {
-            recognition.stop();
-          } else {
-            try {
-              recognition.start();
-            } catch (err) {
-              console.error("인식 시작 에러:", err);
-            }
-          }
+          if (isRecognizing) { recognition.stop(); } else { try { recognition.start(); } catch (err) { console.error(err); } }
         });
-        recognition.onstart = () => {
-          isRecognizing = true;
-          voiceBtn.style.backgroundColor = '#666';
-          voiceBtn.style.color = '#fff';
-          voiceBtn.textContent = '⏹ 중단하기';
-        };
+        recognition.onstart = () => { isRecognizing = true; voiceBtn.style.backgroundColor = '#666'; voiceBtn.style.color = '#fff'; voiceBtn.textContent = '⏹ 중단하기'; };
         recognition.onresult = (event) => {
           const transcript = event.results[0][0].transcript;
           const diaryArea = document.getElementById('diaryContent');
           if (diaryArea) {
-            const currentText = diaryArea.value;
-            diaryArea.value = currentText + (currentText ? " " : "") + transcript;
-            const charCount = document.getElementById('charCount');
-            if (charCount) charCount.textContent = diaryArea.value.length;
-            diaryArea.dispatchEvent(new Event('input'));
+            diaryArea.value = diaryArea.value + (diaryArea.value ? " " : "") + transcript;
+            if (document.getElementById('charCount')) document.getElementById('charCount').textContent = diaryArea.value.length;
           }
         };
-        recognition.onend = () => {
-          isRecognizing = false;
-          voiceBtn.style.backgroundColor = ''; 
-          voiceBtn.style.color = '';
-          voiceBtn.textContent = '🎙 음성 입력';
-        };
-        recognition.onerror = (event) => {
-          console.error("음성 인식 오류:", event.error);
-          isRecognizing = false;
-        };
-      } else {
-        voiceBtn.style.display = 'none';
-      }
+        recognition.onend = () => { isRecognizing = false; voiceBtn.style.backgroundColor = ''; voiceBtn.style.color = ''; voiceBtn.textContent = '🎙 음성 입력'; };
+        recognition.onerror = () => { isRecognizing = false; };
+      } else { voiceBtn.style.display = 'none'; }
 
-      // 저장 로직
+      // 저장 및 수정 비동기 통신 완전 통합 엔진
       if (saveBtn) {
         saveBtn.addEventListener('click', async () => {
           const content = textarea.value.trim();
@@ -284,26 +339,133 @@
             formData.append('emotionId', selectedEmotionId);
             formData.append('date', displayDateStr);
             
-            if (mediaFileInput.files[0]) {
-              formData.append('mediaFile', mediaFileInput.files[0]);
+            if (editData) {
+              formData.append('keptFiles', existingFiles.join(','));
+            }
+            selectedNewFiles.forEach(file => { formData.append('mediaFiles', file); });
+
+            let url = '/write'; 
+            let method = 'POST';
+            
+            if (editData) { 
+              url = `/write/${editData.id}`; 
+              method = 'PUT'; 
             }
 
-            const res = await fetch('/write', {
-              method: 'POST',
-              body: formData
-            });
+            const res = await fetch(url, { method: method, body: formData });
             const data = await res.json();
+            
             if (data.success) {
-              window.location.reload();
+              if (editData) {
+                alert('일기가 성공적으로 수정되었습니다!');
+                location.href = '/calendar';
+              } else {
+                window.location.reload();
+              }
             } else {
-              alert('저장 실패: ' + (data.message || '알 수 없는 오류'));
+              alert('처리 실패: ' + (data.message || '알 수 없는 오류'));
             }
           } catch (err) {
-            console.error('기록 저장 중 에러 발생:', err);
-            alert('서버와 통신하는 중 오류가 발생했습니다.');
+            console.error(err);
+            alert('서버 통신 오류');
           }
         });
       }
+
+      // 라이트박스 모달 갤러리 통합 제어부
+      const lightbox = document.getElementById('lightboxModal');
+      const viewArea = document.getElementById('lightboxViewArea');
+      const closeBtn = document.getElementById('lightboxCloseBtn');
+      const prevBtn = document.getElementById('lightboxPrevBtn');
+      const nextBtn = document.getElementById('lightboxNextBtn');
+
+      let currentLightboxMediaArray = [];
+      let currentLightboxIndex = 0;
+
+      function updateArrowStates() {
+        if (currentLightboxMediaArray.length <= 1) {
+          prevBtn.style.setProperty('display', 'none', 'important');
+          nextBtn.style.setProperty('display', 'none', 'important');
+          return;
+        }
+        prevBtn.style.setProperty('display', 'block', 'important');
+        nextBtn.style.setProperty('display', 'block', 'important');
+
+        if (currentLightboxIndex === 0) {
+          prevBtn.style.opacity = '0.15'; prevBtn.style.cursor = 'not-allowed'; prevBtn.style.pointerEvents = 'none';
+        } else {
+          prevBtn.style.opacity = '1'; prevBtn.style.cursor = 'pointer'; prevBtn.style.pointerEvents = 'auto';
+        }
+
+        if (currentLightboxIndex === currentLightboxMediaArray.length - 1) {
+          nextBtn.style.opacity = '0.15'; nextBtn.style.cursor = 'not-allowed'; nextBtn.style.pointerEvents = 'none';
+        } else {
+          nextBtn.style.opacity = '1'; nextBtn.style.cursor = 'pointer'; nextBtn.style.pointerEvents = 'auto';
+        }
+      }
+
+      function renderLightboxContent() {
+        if (currentLightboxMediaArray.length === 0) return;
+        const src = currentLightboxMediaArray[currentLightboxIndex];
+        const isVideo = src.match(/\.(mp4|mov|avi|wmv)/i) || src.startsWith('data:video/');
+
+        if (isVideo) {
+          viewArea.innerHTML = `<video src="${src}" controls class="lightbox-content" autoplay style="max-width: 85% !important; max-height: 80vh !important; object-fit: contain !important; border-radius: 12px; box-shadow: 0 4px 30px rgba(0,0,0,0.5); z-index: 10000002 !important;"></video>`;
+        } else {
+          viewArea.innerHTML = `<img src="${src}" class="lightbox-content" style="max-width: 85% !important; max-height: 80vh !important; object-fit: contain !important; border-radius: 12px; box-shadow: 0 4px 30px rgba(0,0,0,0.5); z-index: 10000002 !important;" />`;
+        }
+        updateArrowStates();
+      }
+
+      function openLightbox(mediaSrcList, startIndex) {
+        currentLightboxMediaArray = mediaSrcList;
+        currentLightboxIndex = startIndex;
+        renderLightboxContent();
+        lightbox.style.setProperty('display', 'flex', 'important'); 
+        lightbox.classList.add('show');
+        document.body.style.overflow = 'hidden'; 
+      }
+
+      function deleteLightbox() {
+        lightbox.style.setProperty('display', 'none', 'important');
+        lightbox.classList.remove('show');
+        document.body.style.overflow = ''; 
+        currentLightboxMediaArray = []; currentLightboxIndex = 0;
+        setTimeout(() => { viewArea.innerHTML = ''; }, 150); 
+      }
+
+      function moveLeft() { if (currentLightboxIndex > 0) { currentLightboxIndex--; renderLightboxContent(); } }
+      function moveRight() { if (currentLightboxIndex < currentLightboxMediaArray.length - 1) { currentLightboxIndex++; renderLightboxContent(); } }
+
+      document.body.addEventListener('click', (e) => {
+        const targetTag = e.target.tagName;
+        if (targetTag === 'IMG' || targetTag === 'VIDEO') {
+          const container = e.target.closest('.cal-media-container') || e.target.closest('#mediaPreviewContainer') || e.target.closest('.preview-wrapper');
+          if (container) {
+            e.stopPropagation();
+            if (targetTag === 'VIDEO' && (e.offsetX >= e.target.clientWidth * 0.8 || e.offsetY >= e.target.clientHeight * 0.8)) return;
+
+            const allMediaNodes = Array.from(container.querySelectorAll('.media-preview-item, .preview-wrapper img, .preview-wrapper video'));
+            const mediaSrcList = allMediaNodes.map(node => node.src).filter(src => src);
+            const clickIndex = allMediaNodes.indexOf(e.target);
+
+            if (mediaSrcList.length > 0) { openLightbox(mediaSrcList, clickIndex >= 0 ? clickIndex : 0); }
+          }
+        }
+      });
+
+      prevBtn.addEventListener('click', (e) => { e.stopPropagation(); moveLeft(); });
+      nextBtn.addEventListener('click', (e) => { e.stopPropagation(); moveRight(); });
+
+      document.addEventListener('keydown', (e) => {
+        if (!lightbox.classList.contains('show')) return;
+        if (e.key === 'ArrowRight') { e.preventDefault(); moveRight(); } 
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); moveLeft(); } 
+        else if (e.key === 'Escape') { deleteLightbox(); }
+      });
+
+      if (closeBtn) closeBtn.addEventListener('click', deleteLightbox);
+      lightbox.addEventListener('click', (e) => { if (e.target === lightbox || e.target === viewArea) deleteLightbox(); });
     });
   </script>
 </body>
