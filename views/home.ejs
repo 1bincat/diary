@@ -20,7 +20,7 @@
           <button class="emotion happy" data-id="1">😊</button>
           <button class="emotion calm" data-id="2">😌</button>
           <button class="emotion normal" data-id="3">😐</button>
-          <button class="emotion sad" data-id="4">😭</button>
+          <button class="emotion sad" data-id="4">😢</button>
           <button class="emotion angry" data-id="5">😡</button>
         </div>
         <button class="write-btn">일기 작성하기</button>
@@ -28,25 +28,24 @@
 
       <div class="bottom-row">
         <div class="rec-card">
-          <h2 class="rec-card__title">오늘의 추천</h2>
+          <h2 class="rec-card__title">이번주 AI 추천</h2>
           <p class="rec-card__date"><%= (typeof date !== 'undefined') ? date : '' %></p>
-          <div id="rec-message" class="rec-item">오늘의 한마디 : 감정을 먼저 선택해주세요</div>
-          <div id="rec-action" class="rec-item">추천 행동 : -</div>
-          <div id="rec-music" class="rec-item">♫ -</div>
+          <div id="rec-message" class="rec-item">오늘의 한마디 : <%= aiRecommendation.message %></div>
+          <div id="rec-action" class="rec-item">추천 행동 : <%= aiRecommendation.action %></div>
+          <div id="rec-music" class="rec-item">♫ <%= aiRecommendation.music %></div>
         </div>
 
         <div class="stats-card">
           <h2 class="stats-card__title">이번주 감정 통계</h2>
           <div class="bar-chart">
             <% 
-              // stats 데이터가 없을 경우를 대비한 방어 코드
               const safeStats = (typeof stats !== 'undefined') ? stats : { happy: 0, calm: 0, normal: 0, sad: 0, angry: 0 };
-              const maxCount = Math.max(...Object.values(safeStats), 1); 
+              const maxCount = Math.max(...Object.values(safeStats), 1);
               const emotionItems = [
                 { key: 'happy', emoji: '😊' },
                 { key: 'calm', emoji: '😌' },
                 { key: 'normal', emoji: '😐' },
-                { key: 'sad', emoji: '😭' },
+                { key: 'sad', emoji: '😢' },
                 { key: 'angry', emoji: '😡' }
               ];
             %>
@@ -66,29 +65,9 @@
     </div>
   </div>
 
-  <div id="toast" style="position: fixed; top: 2rem; left: 50%; transform: translateX(-50%) translateY(-20px); background: #3a3a35; color: white; padding: 12px 24px; border-radius: 20px; font-size: 14px; opacity: 0; transition: all 0.3s ease; pointer-events: none; z-index: 9999;">감정을 먼저 선택해주세요!</div>
+  <div id="toast">감정을 먼저 선택해주세요!</div>
 
   <script>
-    // 감정별 추천 데이터
-    const recommendations = {
-      happy: [
-        { message: '오늘 하루도 빛나고 있어요!', action: '친구에게 안부 문자 보내기', music: '♫ Pharrell Williams – Happy' },
-        { message: '이 기분 오래오래 간직해요', action: '좋아하는 카페 가기', music: '♫ IU – Blueming' },
-      ],
-      calm: [
-        { message: '고요한 하루네요', action: '잠깐 산책하기', music: '♫ Norah Jones – Come Away With Me' },
-      ],
-      normal: [
-        { message: '무난한 하루네', action: '스트레칭 10분', music: '♫ Hearts2Hearts – RUDE!' },
-      ],
-      sad: [
-        { message: '괜찮아요, 오늘 하루 수고했어요', action: '따뜻한 차 한잔 마시기', music: '♫ 아이유 – 이런 엔딩' },
-      ],
-      angry: [
-        { message: '심호흡 한번 해봐요', action: '10분 걷기', music: '♫ Billie Eilish – Lovely' },
-      ],
-    };
-
     function showToast() {
       const toast = document.getElementById('toast');
       toast.style.opacity = '1';
@@ -100,33 +79,20 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // 1. 감정 버튼 클릭 이벤트 (추천 데이터 업데이트)
       document.querySelectorAll('.emotion').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.emotion').forEach(b => b.classList.remove('selected'));
           btn.classList.add('selected');
-
-          // 클래스명에서 감정 키 추출
-          const emotionKey = [...btn.classList].find(c => recommendations[c]);
-          const list = recommendations[emotionKey];
-          
-          if (list) {
-            const data = list[Math.floor(Math.random() * list.length)];
-            document.getElementById('rec-message').textContent = `오늘의 한마디 : ${data.message}`;
-            document.getElementById('rec-action').textContent = `추천 행동 : ${data.action}`;
-            document.getElementById('rec-music').textContent = data.music;
-          }
         });
       });
 
-      // 2. 작성하기 버튼 클릭 (데이터 전달)
       const writeBtn = document.querySelector('.write-btn');
       if (writeBtn) {
         writeBtn.addEventListener('click', () => {
           const isLoggedIn = "<%= user ? 'true' : 'false' %>" === "true";
           if (!isLoggedIn) {
             if (typeof openLogin === 'function') openLogin();
-            else alert('로그인이 필요한 서비스입니다.');
+            else alert('로그인이 필요한 service입니다.');
             return;
           }
 
@@ -138,6 +104,7 @@
 
           const emotionMap = { happy: 1, calm: 2, normal: 3, sad: 4, angry: 5 };
           const emotionClass = [...selected.classList].find(c => emotionMap[c]);
+          
           location.href = `/write?emotion=${emotionMap[emotionClass]}`;
         });
       }

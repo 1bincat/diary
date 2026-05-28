@@ -341,3 +341,38 @@ header,
   font-size: 14px;
   cursor: pointer;
 }
+
+/* ==========================================================================
+   🎯 [최종 완결] 헤더 꼬임 복구 및 Moodly 로고 한 줄 수평 정렬 마스터
+   ========================================================================== */
+
+/* 로고를 감싸는 링크 태그가 헤더 내부 가로 정렬(Flex)을 탈출하지 않도록 조율 */
+.logo-btn-link {
+  text-decoration: none !important;
+  color: inherit !important;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 로고 마우스 오버 인터랙션 디자인 정의 */
+.logo-btn-link:hover {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.logo-btn-link:hover .logo {
+  color: var(--green-dark) !important;
+}
+
+/* 헤더 내비게이션 바 메뉴 요소 간 수직 정렬 정밀 보정 */
+.header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+}
+
+.login-area {
+  margin-left: auto !important; /* 로그인 및 닉네임 영역을 무조건 우측 끝으로 밀어 정렬 */
+  display: flex;
+  align-items: center;
+}

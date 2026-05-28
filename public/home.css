@@ -209,3 +209,25 @@
     margin-bottom: 1rem;
   }
 }
+
+#toast {
+  position: fixed;
+  top: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: #3a3a35;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 20px;
+  font-size: 14px;
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* 2. 이번주 감정 통계 막대그래프 동적 캡션 볼드 처리 */
+.stats-caption strong {
+  color: var(--green-dark);
+  font-weight: 800;
+}

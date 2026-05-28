@@ -554,9 +554,9 @@
   left: 4px !important;
   background: rgba(0, 0, 0, 0.6) !important;
   color: #ffffff !important;
-  font-size: 9px !important;
+  font-size: 11px !important;
   padding: 1px 4px !important;
-  border-radius: 3px !important;
+  border-radius:3px !important;
   font-weight: bold !important;
   pointer-events: none !important;
   line-height: 1 !important;
@@ -610,4 +610,17 @@
 
 .cal-media-container::-webkit-scrollbar-thumb:hover {
   background: #c0c0c0 !important; /* 마우스 올렸을 때 은은하게 반응하는 그레이 */
+}
+
+/* 1. 기본 이미지 상태 정의 (타임라인과 동일하게 부드러운 전환 효과 준비) */
+.cal-media-container .media-preview-item {
+  cursor: pointer !important;              /* 마우스 커서를 손가락 모양으로 변경 */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out !important; /* 부드러운 애니메이션 */
+}
+
+/* 2. 마우스를 올렸을 때(Hover) 효과 적용 */
+.cal-media-container .media-preview-item:hover {
+  transform: scale(1.05) !important;       /* 이미지 크기 5% 확대 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; /* 그림자를 더 진하게 강조 */
+  z-index: 10;                             /* 확대될 때 옆 이미지에 묻히지 않도록 위로 올림 */
 }

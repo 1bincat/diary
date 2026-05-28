@@ -336,7 +336,7 @@ html, body {
   font-family: 'Noto Sans KR', sans-serif;
 }
 
-/* ─── 🚀 오늘의 타임라인 이미지 가로 스크롤 (초록색 ➡️ 완전 옅은 회색 스크롤바 전면 교체) ─── */
+/* ─── 📸 오늘의 타임라인 이미지 가로 스크롤 스크롤바 전면 교체 ─── */
 .cal-media-container {
   margin-top: 8px;
   margin-bottom: 8px;
@@ -364,11 +364,11 @@ html, body {
   border-radius: 2px;
 }
 .cal-media-container::-webkit-scrollbar-thumb {
-  background: #d8d8d8 !important; /* 👈 [핵심수정] 초록색에서 무채색 계열의 완전 옅은 회색으로 변경! */
+  background: #d8d8d8 !important; 
   border-radius: 2px;
 }
 .cal-media-container::-webkit-scrollbar-thumb:hover {
-  background: #c0c0c0 !important; /* 마우스 올렸을 때 살짝만 더 어두워지는 은은한 그레이 */
+  background: #c0c0c0 !important; 
 }
 
 .cal-media-scroll-item {
@@ -448,7 +448,7 @@ html, body {
 }
 
 .preview-wrapper {
-  position: relative !important; /* 🚀 배지가 썸네일 밖으로 튀어나가지 않도록 봉인 */
+  position: relative !important; 
   display: inline-block !important;
   width: 100px !important;
   height: 80px !important;
@@ -461,7 +461,7 @@ html, body {
   height: 100% !important;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  object-fit: cover !important; /* 🚀 비율이 찌그러지지 않고 캘린더처럼 꽉 차게 피팅 */
+  object-fit: cover !important; 
   display: block;
 }
 
@@ -488,3 +488,289 @@ html, body {
 .remove-preview-btn:hover {
   background: #e03e3e !important;
 }
+
+
+/* ==========================================================================
+   ✂️ [팀원 권고 전면 수용] write.ejs 추출 인라인 스타일 CSS 완전 통합 이식 구역
+   ========================================================================== */
+
+/* 1. 라이트박스 전역 모달 레이아웃 */
+.lightbox-modal {
+  display: none;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  z-index: 9999999 !important;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.lightbox-close-btn {
+  position: absolute !important;
+  top: 25px !important;
+  right: 30px !important;
+  background: none !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 44px !important;
+  cursor: pointer !important;
+  z-index: 10000005 !important;
+  line-height: 1;
+}
+
+.lightbox-arrow-btn {
+  display: block !important;
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  background: none !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 45px !important;
+  font-weight: bold !important;
+  font-family: sans-serif !important;
+  cursor: pointer !important;
+  z-index: 10000005 !important;
+  padding: 10px !important;
+  width: auto !important;
+  height: auto !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  opacity: 1 !important;
+}
+
+#lightboxPrevBtn { left: 40px !important; }
+#lightboxNextBtn { right: 40px !important; }
+
+#lightboxViewArea {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  z-index: 10000000 !important;
+}
+
+/* 2. 제출 완료 AI 감정 케어 모달 리포트 팝업창 */
+#aiRecommendationModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999999;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.ai-popup-body {
+  background: #ffffff;
+  width: 90%;
+  max-width: 420px;
+  border-radius: 22px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  text-align: center;
+  box-sizing: border-box;
+  animation: popupScale 0.3s ease-out;
+}
+
+.ai-popup-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #3a4a36;
+  margin: 0 0 1.2rem 0;
+}
+
+.ai-popup-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+  margin-bottom: 1.8rem;
+}
+
+.ai-popup-card-item {
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+.ai-popup-card-item.msg-box { background: #f7f9f5; border-left: 4px solid #7aab6e; }
+.ai-popup-card-item.act-box { background: #f7f9f5; border-left: 4px solid #b07800; }
+.ai-popup-card-item.mus-box { background: #f7f9f5; border-left: 4px solid #228be6; }
+
+.ai-popup-card-item small {
+  display: block;
+  font-weight: bold;
+  font-size: 0.75rem;
+  margin-bottom: 4px;
+}
+.ai-popup-card-item.msg-box small { color: #7aab6e; }
+.ai-popup-card-item.act-box small { color: #b07800; }
+.ai-popup-card-item.mus-box small { color: #228be6; }
+
+.ai-popup-card-item span {
+  font-size: 0.9rem;
+  color: #444;
+  line-height: 1.5;
+}
+.ai-popup-card-item.mus-box span { font-weight: 500; }
+
+#aiPopCloseBtn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  width: 100%;
+  padding: 12px 0;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(76,175,80,0.3);
+  transition: background 0.2s;
+}
+
+/* 3. 작성 페이지 헤더 제목 및 정렬 */
+.emotion-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+#currentDate {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 900;
+  font-size: 1.4rem;
+  margin: 0;
+  color: #333;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.write-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.emotion-chart-card p {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.chart-wrapper-box {
+  height: 220px;
+  position: relative;
+}
+
+/* 4. 연속기록 박스 및 텍스트 튜닝 */
+.side-label {
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #555;
+}
+
+.streak-box {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* 5. 오늘의 타임라인 개별 리스트 아이템 컴포넌트 */
+.timeline-item-bullet {
+  position: absolute;
+  left: -6px;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4CAF50;
+}
+
+.timeline-item small {
+  color: #888;
+}
+
+.timeline-emoji-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-size: 1.2rem;
+  cursor: pointer;
+  user-select: none;
+  padding: 2px;
+}
+
+/* ─── 🎈 초정밀 감성 말풍선(Popover) 디자인 엔진 수정 ─── */
+.ai-bubble-popover {
+  position: fixed; /* 👈 absolute에서 fixed로 변경하여 화면 스크롤/사이드바 스크롤에 모두 대응 */
+  background: #ffffff;
+  border: 2px solid #7aab6e;
+  border-radius: 16px;
+  padding: 14px 16px;
+  width: 280px;
+  box-shadow: 0 8px 24px rgba(80, 110, 70, 0.16);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: 'Noto Sans KR', sans-serif;
+  animation: bubbleFadeIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 왼쪽 이모지를 조준하는 말풍선 화살표 꼬리 연출 */
+.ai-bubble-popover::after, .ai-bubble-popover::before {
+  right: 100%;
+  top: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
+.ai-bubble-popover::after {
+  border-color: rgba(255, 255, 255, 0);
+  border-right-color: #ffffff;
+  border-width: 10px;
+  margin-top: -10px;
+}
+.ai-bubble-popover::before {
+  border-color: rgba(122, 171, 110, 0);
+  border-right-color: #7aab6e;
+  border-width: 13px;
+  margin-top: -13px;
+}
+
+@keyframes bubbleFadeIn {
+  from { transform: translateX(10px) scale(0.95); opacity: 0; }
+  to { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+.ai-bubble-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ai-bubble-item small {
+  font-size: 0.72rem;
+  font-weight: bold;
+}
+.ai-bubble-item p {
+  font-size: 0.83rem;
+  color: #444;
+  margin: 0;
+  line-height: 1.4;
+  word-break: break-all;
+}
+.bubble-msg small { color: #7aab6e; }
+.bubble-act small { color: #b07800; }
+.bubble-mus small { color: #228be6; }
+.bubble-mus p { font-weight: 500; }
