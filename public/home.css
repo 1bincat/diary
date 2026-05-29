@@ -29,6 +29,12 @@
   white-space: nowrap;
 }
 
+.streak-badge--broken {
+  background: #fdecea;
+  border: 1px solid #f5a0a0;
+  color: #b04040;
+}
+
 .emotion-list {
   display: flex;
   justify-content: center;
