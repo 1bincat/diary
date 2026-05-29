@@ -14,7 +14,11 @@
       <%- include('partials/header') %>
 
       <section class="main-card">
-        <div class="streak-badge">🔥 <%= (typeof streak !== 'undefined') ? streak : 0 %>일 연속 기록 중</div>
+        <% if (streakBroken) { %>
+          <div class="streak-badge streak-badge--broken">💔 연속 기록이 끊겼어요</div>
+        <% } else { %>
+          <div class="streak-badge">🔥 <%= (typeof streak !== 'undefined') ? streak : 0 %>일 연속 기록 중</div>
+        <% } %>
         <h1>오늘의 감정을 기록해보세요</h1>
         <div class="emotion-list">
           <button class="emotion happy" data-id="1">😊</button>
