@@ -4,10 +4,8 @@ const db = require('../config/db');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-// Google Gen AI 공식 SDK 라이브러리 로드
 const { GoogleGenAI } = require('@google/genai');
 
-// 환경변수에 등록된 API Key를 기반으로 인스턴스 초기화
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 function requireLogin(req, res, next) {
@@ -35,15 +33,13 @@ const upload = multer({
   limits: { fileSize: 50 * 1024 * 1024 }
 });
 
-// [GET] 작성 페이지 조회
 router.get('/', requireLogin, async (req, res) => {
   const userId = req.session.user.userId;
-  const now = new Date();
-  const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+  const kstDate = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
   const todayStr = kstDate.toISOString().split('T')[0];
+  const yesterdayStr = new Date(kstDate.getTime() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const displayDate = req.query.date || todayStr;
   const selectedEmotionFromUrl = req.query.emotion || 0;
-  
   const editId = req.query.editId || null;
 
   try {
@@ -81,21 +77,31 @@ router.get('/', requireLogin, async (req, res) => {
         'SELECT id, content, emotion_id, file_path FROM diaries WHERE id = ? AND user_id = ?',
         [editId, dbUserId]
       );
-      if (editRows.length > 0) {
-        editData = editRows[0];
-      }
+      if (editRows.length > 0) editData = editRows[0];
     }
 
     const [streakRows] = await db.query(
-      'SELECT streak_count FROM streak_logs WHERE user_id = ? ORDER BY streak_date DESC LIMIT 1',
+      'SELECT streak_count, streak_date FROM streak_logs WHERE user_id = ? ORDER BY streak_date DESC LIMIT 1',
       [dbUserId]
     );
+
+    let streak = 0;
+    let streakBroken = false;
+    if (streakRows.length > 0) {
+      const lastDateStr = new Date(streakRows[0].streak_date).toISOString().slice(0, 10);
+      if (lastDateStr === todayStr || lastDateStr === yesterdayStr) {
+        streak = streakRows[0].streak_count;
+      } else {
+        streakBroken = true;
+      }
+    }
 
     res.render('write', { 
       path: '/write', 
       diaries, 
       editData, 
-      streak: streakRows.length > 0 ? streakRows[0].streak_count : 0, 
+      streak,
+      streakBroken,
       selectedEmotion: parseInt(selectedEmotionFromUrl), 
       displayDate 
     });
@@ -105,7 +111,6 @@ router.get('/', requireLogin, async (req, res) => {
   }
 });
 
-// [POST] 일기 저장
 router.post('/', requireLogin, upload.array('mediaFiles'), async (req, res) => {
   const user = req.session.user;
   const { content, emotionId, date } = req.body;
@@ -122,14 +127,12 @@ router.post('/', requireLogin, upload.array('mediaFiles'), async (req, res) => {
     const emotionIdMap = { 1: '행복', 2: '평온', 3: '보통', 4: '슬픔', 5: '분노' };
     const emotionKorean = emotionIdMap[emotionId] || '보통';
 
-    // 1. 통신 차단 대비용 철벽 방어 Fallback 데이터 세트 (20자 내외로 압축 다이어트 완료 🎈)
     let aiRecommendation = {
       message: `소중한 [${emotionKorean}] 기분을 기록해 주셔서 감사해요.`,
       action: '따뜻한 물 한 잔 마시며 창밖 바라보기',
       music: '내 마음에 안정을 주는 Lo-Fi 연주곡'
     };
 
-    // 🎯 20자 글자 수 제약 및 신선한 멘트 생성을 유도하는 초정밀 프롬프트 인젝션
     const promptMessage = `
       사용자가 방금 일기를 제출했습니다. 선택한 감정은 [${emotionKorean}] 이며, 본문 내용은 다음과 같습니다: "${content}"
       본문 내용과 감정에 깊이 공감하고 위로해줄 힐링 데이터(오늘의 한마디: message, 추천 행동: action, 추천 음악: music)를 JSON 형식으로 생성해주세요.
@@ -148,7 +151,6 @@ router.post('/', requireLogin, upload.array('mediaFiles'), async (req, res) => {
       - 반드시 '아티스트 - 노래 제목' 형식으로만 깔끔하게 출력하세요.
     `;
 
-    // 2. AI 선제 호출 실행
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -169,19 +171,47 @@ router.post('/', requireLogin, upload.array('mediaFiles'), async (req, res) => {
       });
 
       const cleanText = response.text.trim();
-      if (cleanText) {
-        aiRecommendation = JSON.parse(cleanText);
-      }
+      if (cleanText) aiRecommendation = JSON.parse(cleanText);
     } catch (aiErr) {
       console.warn('⚠️ [AI 제한 혹은 장애 발생] 기본 추천 데이터로 대체 내재화하여 DB 저장을 계속합니다.');
     }
 
-    // 3. 일기 원본 내용과 20자로 압축된 AI 조언 데이터를 단 한 번에 묶어 세이브!
     await db.query(
       `INSERT INTO diaries (user_id, emotion_id, diary_date, content, file_path, ai_message, ai_action, ai_music) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [dbUserId, emotionId, date, content, filePathString, aiRecommendation.message, aiRecommendation.action, aiRecommendation.music]
     );
+
+    // streak 업데이트
+    const writeDateStr = date;
+    const kstNow = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
+    const yesterdayForStreak = new Date(kstNow.getTime() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+    const [todayStreak] = await db.query(
+      'SELECT id FROM streak_logs WHERE user_id = ? AND streak_date = ?',
+      [dbUserId, writeDateStr]
+    );
+
+    if (todayStreak.length === 0) {
+      // 오늘 streak 기록 없을 때만 insert
+      const [lastStreak] = await db.query(
+        'SELECT streak_count, streak_date FROM streak_logs WHERE user_id = ? ORDER BY streak_date DESC LIMIT 1',
+        [dbUserId]
+      );
+
+      let newStreakCount = 1;
+      if (lastStreak.length > 0) {
+        const lastDateStr = new Date(lastStreak[0].streak_date).toISOString().slice(0, 10);
+        if (lastDateStr === yesterdayForStreak) {
+          newStreakCount = lastStreak[0].streak_count + 1;
+        }
+      }
+
+      await db.query(
+        'INSERT INTO streak_logs (user_id, streak_date, streak_count) VALUES (?, ?, ?)',
+        [dbUserId, writeDateStr, newStreakCount]
+      );
+    }
 
     res.json({ success: true, aiRecommendation });
 
@@ -191,7 +221,6 @@ router.post('/', requireLogin, upload.array('mediaFiles'), async (req, res) => {
   }
 });
 
-// [PUT] 일기 수정 (기존 로직 유지)
 router.put('/:id', requireLogin, upload.array('mediaFiles'), async (req, res) => {
   const diaryId = req.params.id;
   const { content, emotionId, keptFiles } = req.body;
@@ -202,7 +231,6 @@ router.put('/:id', requireLogin, upload.array('mediaFiles'), async (req, res) =>
     const dbUserId = userRows[0].id;
 
     let finalFiles = keptFiles ? keptFiles.split(',').filter(Boolean) : [];
-
     if (req.files && req.files.length > 0) {
       req.files.forEach(file => finalFiles.push(file.filename));
     }
@@ -221,7 +249,6 @@ router.put('/:id', requireLogin, upload.array('mediaFiles'), async (req, res) =>
   }
 });
 
-// [DELETE] 일기 삭제 (기존 로직 유지)
 router.delete('/:id', requireLogin, async (req, res) => {
   const diaryId = req.params.id;
   const user = req.session.user;
@@ -244,7 +271,6 @@ router.delete('/:id', requireLogin, async (req, res) => {
     }
 
     await db.query('DELETE FROM diaries WHERE id = ? AND user_id = ?', [diaryId, dbUserId]);
-
     res.json({ success: true });
   } catch (err) {
     console.error(err);
